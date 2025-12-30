@@ -3,108 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 動態幾何學習門戶</title>
+    <title>吳老師數學教學網</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary: #4A90E2;
-            --secondary: #5C6BC0;
-            --bg: #F8F9FA;
-            --text: #333;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
+        
         body {
-            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 40px 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f2f5;
         }
-        .header {
-            text-align: center;
-            margin-bottom: 50px;
+
+        .card-gradient-1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-        h1 {
-            font-size: 2.5rem;
-            color: var(--secondary);
-            margin-bottom: 10px;
+
+        .card-gradient-2 {
+            background: linear-gradient(135deg, #2af598 0%, #009efd 100%);
         }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 25px;
-            max-width: 1100px;
-            width: 100%;
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
         }
-        .card {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            text-align: center;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
-            text-decoration: none;
-            border-top: 5px solid var(--primary);
+
+        .hover-scale {
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
-            background-color: #fff;
-        }
-        .card h2 {
-            margin: 0 0 15px 0;
-            font-size: 1.4rem;
-            color: #2c3e50;
-        }
-        .card p {
-            color: #666;
-            font-size: 0.9rem;
-            line-height: 1.5;
-        }
-        .tag {
-            display: inline-block;
-            padding: 5px 12px;
-            background: #E3F2FD;
-            color: #1976D2;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            margin-bottom: 15px;
+
+        .hover-scale:hover {
+            transform: translateY(-8px) scale(1.02);
         }
     </style>
 </head>
-<body>
+<body class="min-h-screen pb-12">
 
-    <div class="header">
-        <h1>AI 動態幾何課程</h1>
-        <p>點擊下方主題，開啟 Gemini 互動學習視窗</p>
-    </div>
+    <!-- 導覽列 -->
+    <nav class="bg-white shadow-md p-4 mb-8">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-shapes text-indigo-600 text-2xl"></i>
+                <span class="text-xl font-bold text-gray-800">吳老師數學教學網</span>
+            </div>
+            <div class="text-sm text-gray-500 hidden sm:block">
+                Gemini 互動教學資源整合
+            </div>
+        </div>
+    </nav>
 
-    <div class="grid">
-        <a href="https://gemini.google.com/share/6e30144dc222" target="_blank" class="card">
-            <div class="tag">幾何心</div>
-            <h2>外心</h2>
-            <p>探索三角形三邊中垂線的交點與外接圓特性。</p>
-        </a>
+    <main class="container mx-auto px-4">
+        
+        <!-- 標題區 -->
+        <header class="text-center mb-12">
+            <h1 class="text-4xl font-extrabold text-gray-900 mb-4">動態幾何學習入口</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                點擊下方的工具卡片，即可開啟對應的互動式幾何或函數模擬器進行探索與實驗。
+            </p>
+        </header>
 
-        <a href="https://gemini.google.com/share/096944ccab2a" target="_blank" class="card">
-            <div class="tag">幾何心</div>
-            <h2>內心</h2>
-            <p>了解角平分線交點與內切圓的奧祕。</p>
-        </a>
+        <!-- 三角形三心區段 -->
+        <section class="mb-16">
+            <div class="flex items-center mb-6 border-l-4 border-indigo-500 pl-4">
+                <h2 class="text-2xl font-bold text-gray-800">三角形三心動態幾何</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- 外心 -->
+                <a href="https://gemini.google.com/share/6e30144dc222" target="_blank" class="hover-scale">
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
+                        <div class="card-gradient-1 h-32 flex items-center justify-center">
+                            <i class="fas fa-circle-notch text-white text-5xl opacity-80"></i>
+                        </div>
+                        <div class="p-6 flex-grow">
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">外心 (Circumcenter)</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                探索三角形三邊中垂線的交點。觀察外接圓如何通過三個頂點，並調整頂點看外心位置的變化。
+                            </p>
+                        </div>
+                        <div class="px-6 pb-6 mt-auto">
+                            <span class="inline-block w-full text-center bg-indigo-50 text-indigo-600 font-bold py-2 rounded-lg border border-indigo-100 group-hover:bg-indigo-600">
+                                進入實驗室 <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
 
-        <a href="https://gemini.google.com/share/3cf8a1c0bbc8" target="_blank" class="card">
-            <div class="tag">幾何心</div>
-            <h2>重心</h2>
-            <p>尋找三角形的平衡點：三條中線的交點。</p>
-        </a>
+                <!-- 內心 -->
+                <a href="https://gemini.google.com/share/096944ccab2a" target="_blank" class="hover-scale">
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
+                        <div class="card-gradient-1 h-32 flex items-center justify-center">
+                            <i class="fas fa-bullseye text-white text-5xl opacity-80"></i>
+                        </div>
+                        <div class="p-6 flex-grow">
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">內心 (Incenter)</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                研究三角形三內角平分線的交點。觀察內切圓與三邊的關係，以及到三邊等距離的特性。
+                            </p>
+                        </div>
+                        <div class="px-6 pb-6 mt-auto">
+                            <span class="inline-block w-full text-center bg-indigo-50 text-indigo-600 font-bold py-2 rounded-lg border border-indigo-100">
+                                進入實驗室 <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
 
-        <a href="https://gemini.google.com/share/7e0694d7f2ac" target="_blank" class="card">
-            <div class="tag">代數幾何</div>
-            <h2>二次函數</h2>
-            <p>動態觀察拋物線開口與頂點隨參數的變化。</p>
-        </a>
-    </div>
+                <!-- 重心 -->
+                <a href="https://gemini.google.com/share/3cf8a1c0bbc8" target="_blank" class="hover-scale">
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
+                        <div class="card-gradient-1 h-32 flex items-center justify-center">
+                            <i class="fas fa-balance-scale text-white text-5xl opacity-80"></i>
+                        </div>
+                        <div class="p-6 flex-grow">
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">重心 (Centroid)</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                觀測三角形三條中線的交點。體驗 2:1 的長度性質，以及三角形「平衡點」的概念。
+                            </p>
+                        </div>
+                        <div class="px-6 pb-6 mt-auto">
+                            <span class="inline-block w-full text-center bg-indigo-50 text-indigo-600 font-bold py-2 rounded-lg border border-indigo-100">
+                                進入實驗室 <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- 二次函數區段 -->
+        <section>
+            <div class="flex items-center mb-6 border-l-4 border-emerald-500 pl-4">
+                <h2 class="text-2xl font-bold text-gray-800">二次函數 (拋物線)</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- 軌跡生成器 -->
+                <a href="https://gemini.google.com/share/ebec1d2db53e" target="_blank" class="hover-scale">
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
+                        <div class="card-gradient-2 h-32 flex items-center justify-center">
+                            <i class="fas fa-magic text-white text-5xl opacity-80"></i>
+                        </div>
+                        <div class="p-6 flex-grow">
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">拋物線軌跡生成器</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                從幾何定義出發：動態展示點到定點（焦點）與定直線（準線）距離相等的軌跡如何形成完美的拋物線。
+                            </p>
+                        </div>
+                        <div class="px-6 pb-6 mt-auto">
+                            <span class="inline-block w-full text-center bg-emerald-50 text-emerald-600 font-bold py-2 rounded-lg border border-emerald-100">
+                                進入實驗室 <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- 頂點式 -->
+                <a href="https://gemini.google.com/share/7e0694d7f2ac" target="_blank" class="hover-scale">
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
+                        <div class="card-gradient-2 h-32 flex items-center justify-center">
+                            <i class="fas fa-chart-line text-white text-5xl opacity-80"></i>
+                        </div>
+                        <div class="p-6 flex-grow">
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">二次函數頂點式</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                互動式學習 y = a(x-h)² + k。調整滑桿即時觀察平移、伸縮與對稱軸的變化。
+                            </p>
+                        </div>
+                        <div class="px-6 pb-6 mt-auto">
+                            <span class="inline-block w-full text-center bg-emerald-50 text-emerald-600 font-bold py-2 rounded-lg border border-emerald-100">
+                                進入實驗室 <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="mt-20 text-center text-gray-400 text-sm">
+        <p>© 2025 吳老師數學教學網 | 教育資源分享</p>
+    </footer>
 
 </body>
 </html>
