@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>布萊克吳數學實驗室</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f2f5;
+        }
+
+        .card-gradient-1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .card-gradient-2 {
+            background: linear-gradient(135deg, #2af598 0%, #009efd 100%);
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+        }
+
+        .hover-scale {
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .hover-scale:hover {
+            transform: translateY(-8px) scale(1.02);
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12">
+
+    <!-- 導覽列 -->
+    <nav class="bg-white shadow-md p-4 mb-8">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-shapes text-indigo-600 text-2xl"></i>
+                <span class="text-xl font-bold text-gray-800">布萊克吳數學實驗室</span>
+            </div>
+            <div class="text-sm text-gray-500 hidden sm:block">
+                Gemini 互動教學資源整合
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4">
+        
+        <!-- 標題區 -->
+        <header class="text-center mb-12">
+            <h1 class="text-4xl font-extrabold text-gray-900 mb-4">動態幾何學習入口</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                點擊下方的工具卡片，即可開啟對應的互動式幾何或函數模擬器進行探索與實驗。
+            </p>
+        </header>
+
+        <!-- 三角形三心區段 -->
+        <section class="mb-16">
+            <div class="flex items-center mb-6 border-l-4 border-indigo-500 pl-4">
+                <h2 class="text-2xl font-bold text-gray-800">三角形三心動態幾何</h2>
+            </div>
+            
+            <!-- 修改 Grid 佈局以適應 4 個項目：中螢幕 2 欄，大螢幕 4 欄 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- 外心 -->
+                <a href="https://gemini.google.com/share/e160ebbe4e2f" target="_blank" class="hover-scale">
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
+                        <div class="card-gradient-1 h-32 flex items-center justify-center">
+                            <i class="fas fa-circle-notch text-white text-5xl opacity-80"></i>
+                        </div>
+                        <div class="p-6 flex-grow">
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">外心 (Circumcenter)</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                探索三角形三邊中垂線的交點。觀察外接圓如何通過三個頂點，並調整頂點看外心位置的變化。
+                            </p>
+                        </div>
+                        <div class="px-6 pb-6 mt-auto">
+                            <span class="inline-block w-full text-center bg-indigo-50 text-indigo-600 font-bold py-2 rounded-lg border border-indigo-100 group-hover:bg-indigo-600">
+                                進入實驗室 <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- 內心 -->
+                <a href="https://gemini.google.com/share/49cfca2b2d70" target="_blank" class="hover-scale">
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
+                        <div class="card-gradient-1 h-32 flex items-center justify-center">
+                            <i class="fas fa-bullseye text-white text-5xl opacity-80"></i>
+                        </div>
+                        <div class="p-6 flex-grow">
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">內心 (Incenter)</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                研究三角形三內角平分線的交點。觀察內切圓與三邊的關係，以及到三邊等距離的特性。
+                            </p>
+                        </div>
+                        <div class="px-6 pb-6 mt-auto">
+                            <span class="inline-block w-full text-center bg-indigo-50 text-indigo-600 font-bold py-2 rounded-lg border border-indigo-100">
+                                進入實驗室 <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- 重心 -->
+                <a href="https://gemini.google.com/share/adcc3a474f94" target="_blank" class="hover-scale">
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
+                        <div class="card-gradient-1 h-32 flex items-center justify-center">
+                            <i class="fas fa-balance-scale text-white text-5xl opacity-80"></i>
+                        </div>
+                        <div class="p-6 flex-grow">
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">重心 (Centroid)</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                觀測三角形三條中線的交點。體驗 2:1 的長度性質，以及三角形「平衡點」的概念。
+                            </p>
+                        </div>
+                        <div class="px-6 pb-6 mt-auto">
+                            <span class="inline-block w-full text-center bg-indigo-50 text-indigo-600 font-bold py-2 rounded-lg border border-indigo-100">
+                                進入實驗室 <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- 三心關係 (新增) -->
+                <a href="https://gemini.google.com/share/89d495d31483" target="_blank" class="hover-scale">
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
+                        <div class="card-gradient-1 h-32 flex items-center justify-center">
+                            <i class="fas fa-draw-polygon text-white text-5xl opacity-80"></i>
+                        </div>
+                        <div class="p-6 flex-grow">
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">特殊三角形三心關係</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                探索特殊狀態下的三心：等腰三角形時三心共線（歐拉線），正三角形時三心共點。
+                            </p>
+                        </div>
+                        <div class="px-6 pb-6 mt-auto">
+                            <span class="inline-block w-full text-center bg-indigo-50 text-indigo-600 font-bold py-2 rounded-lg border border-indigo-100">
+                                進入實驗室 <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+
+            </div>
+        </section>
+
+        <!-- 二次函數區段 -->
+        <section>
+            <div class="flex items-center mb-6 border-l-4 border-emerald-500 pl-4">
+                <h2 class="text-2xl font-bold text-gray-800">二次函數 (拋物線)</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- 軌跡生成器 -->
+                <a href="https://gemini.google.com/share/ebec1d2db53e" target="_blank" class="hover-scale">
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
+                        <div class="card-gradient-2 h-32 flex items-center justify-center">
+                            <i class="fas fa-magic text-white text-5xl opacity-80"></i>
+                        </div>
+                        <div class="p-6 flex-grow">
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">拋物線軌跡生成器</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                從幾何定義出發：動態展示點到定點（焦點）與定直線（準線）距離相等的軌跡如何形成完美的拋物線。
+                            </p>
+                        </div>
+                        <div class="px-6 pb-6 mt-auto">
+                            <span class="inline-block w-full text-center bg-emerald-50 text-emerald-600 font-bold py-2 rounded-lg border border-emerald-100">
+                                進入實驗室 <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- 頂點式 -->
+                <a href="https://gemini.google.com/share/22838ad7948e" target="_blank" class="hover-scale">
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
+                        <div class="card-gradient-2 h-32 flex items-center justify-center">
+                            <i class="fas fa-chart-line text-white text-5xl opacity-80"></i>
+                        </div>
+                        <div class="p-6 flex-grow">
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">二次函數頂點式</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                互動式學習 y = a(x-h)² + k。調整滑桿即時觀察平移、伸縮與對稱軸的變化。
+                            </p>
+                        </div>
+                        <div class="px-6 pb-6 mt-auto">
+                            <span class="inline-block w-full text-center bg-emerald-50 text-emerald-600 font-bold py-2 rounded-lg border border-emerald-100">
+                                進入實驗室 <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="mt-20 text-center text-gray-400 text-sm">
+        <p>© 2025 布萊克吳數學實驗室 | 教育資源分享</p>
+    </footer>
+
+</body>
+</html>
+
+
