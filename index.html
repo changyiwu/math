@@ -67,7 +67,8 @@
                 <h2 class="text-2xl font-bold text-gray-800">三角形三心動態幾何</h2>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- 修改 Grid 佈局以適應 4 個項目：中螢幕 2 欄，大螢幕 4 欄 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 <!-- 外心 -->
                 <a href="https://gemini.google.com/share/e160ebbe4e2f" target="_blank" class="hover-scale">
                     <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
@@ -127,6 +128,27 @@
                         </div>
                     </div>
                 </a>
+
+                <!-- 三心關係 (新增) -->
+                <a href="https://gemini.google.com/share/e929667c857f" target="_blank" class="hover-scale">
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
+                        <div class="card-gradient-1 h-32 flex items-center justify-center">
+                            <i class="fas fa-draw-polygon text-white text-5xl opacity-80"></i>
+                        </div>
+                        <div class="p-6 flex-grow">
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">特殊三角形三心關係</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                探索特殊狀態下的三心：等腰三角形時三心共線（歐拉線），正三角形時三心共點。
+                            </p>
+                        </div>
+                        <div class="px-6 pb-6 mt-auto">
+                            <span class="inline-block w-full text-center bg-indigo-50 text-indigo-600 font-bold py-2 rounded-lg border border-indigo-100">
+                                進入實驗室 <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+
             </div>
         </section>
 
@@ -186,6 +208,5 @@
     </footer>
 
 </body>
-
 </html>
 
