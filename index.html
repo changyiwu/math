@@ -14,7 +14,7 @@
             background-color: #f0f2f5;
         }
 
-        /* 新增的漸層樣式 */
+        /* 卡片漸層樣式 */
         .card-gradient-0 {
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
         }
@@ -33,6 +33,11 @@
 
         .card-gradient-4 {
             background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+        }
+
+        /* 新增：線性函數專用漸層 (莓果紅/紫色系) */
+        .card-gradient-new {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
         }
 
         .hover-scale {
@@ -71,10 +76,10 @@
 
         <!-- 主要資源區段 -->
         <section class="mb-16">
-            <!-- 調整 Grid 設定以適應 5 張卡片，大螢幕嘗試 3 列或 4 列佈局 -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            <!-- 調整 Grid 設定以適應 6 張卡片 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 
-                <!-- 新增：1. 整數加法視覺化 -->
+                <!-- 1. 整數加法視覺化 -->
                 <a href="https://gemini.google.com/share/63bfa64986c6" target="_blank" class="hover-scale">
                     <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
                         <div class="card-gradient-0 h-40 flex items-center justify-center">
@@ -94,14 +99,34 @@
                     </div>
                 </a>
 
-                <!-- 原 1 -> 改為 2. 三視圖投影 -->
+                <!-- 新增：2. 線性函數 (使用新漸層) -->
+                <a href="https://changyiwu.github.io/math/index4.html" target="_blank" class="hover-scale">
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
+                        <div class="card-gradient-new h-40 flex items-center justify-center">
+                            <i class="fas fa-ruler-combined text-white text-6xl opacity-90"></i>
+                        </div>
+                        <div class="p-6 flex-grow">
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">2. 線性函數</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                探索一次函數 y = ax + b 的圖形變化。拖動滑桿改變斜率與截距，觀察直線在坐標平面上的走勢，掌握函數圖形的基本特徵。
+                            </p>
+                        </div>
+                        <div class="px-6 pb-6 mt-auto">
+                            <span class="inline-block w-full text-center bg-pink-50 text-pink-600 font-bold py-2 rounded-lg border border-pink-100">
+                                進入實驗室 <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- 原 2 -> 改為 3. 三視圖投影 -->
                 <a href="https://gemini.google.com/share/8d16481a58bc" target="_blank" class="hover-scale">
                     <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
                         <div class="card-gradient-1 h-40 flex items-center justify-center">
                             <i class="fas fa-cube text-white text-6xl opacity-90"></i>
                         </div>
                         <div class="p-6 flex-grow">
-                            <h3 class="text-xl font-bold text-gray-800 mb-2">2. 三視圖投影</h3>
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">3. 三視圖投影</h3>
                             <p class="text-gray-600 text-sm leading-relaxed">
                                 探索立體圖形的前視圖、上視圖與側視圖。透過動態投影與旋轉，建立空間幾何的想像力與視圖轉換能力。
                             </p>
@@ -114,14 +139,14 @@
                     </div>
                 </a>
 
-                <!-- 原 2 -> 改為 3. 多邊形內外角和 -->
+                <!-- 原 3 -> 改為 4. 多邊形內外角和 -->
                 <a href="https://changyiwu.github.io/math/index1.html" target="_blank" class="hover-scale">
                     <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
                         <div class="card-gradient-2 h-40 flex items-center justify-center">
                             <i class="fas fa-draw-polygon text-white text-6xl opacity-90"></i>
                         </div>
                         <div class="p-6 flex-grow">
-                            <h3 class="text-xl font-bold text-gray-800 mb-2">3. 多邊形內外角和</h3>
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">4. 多邊形內外角和</h3>
                             <p class="text-gray-600 text-sm leading-relaxed">
                                 實驗多邊形的角度性質。觀察內角和公式的推導，以及外角和恆為 360 度的視覺呈現。
                             </p>
@@ -134,14 +159,14 @@
                     </div>
                 </a>
 
-                <!-- 原 3 -> 改為 4. 三角形三心 -->
+                <!-- 原 4 -> 改為 5. 三角形三心 -->
                 <a href="https://changyiwu.github.io/math/index2.html" target="_blank" class="hover-scale">
                     <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
                         <div class="card-gradient-3 h-40 flex items-center justify-center">
                             <i class="fas fa-microscope text-white text-6xl opacity-90"></i>
                         </div>
                         <div class="p-6 flex-grow">
-                            <h3 class="text-xl font-bold text-gray-800 mb-2">4. 三角形三心</h3>
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">5. 三角形三心</h3>
                             <p class="text-gray-600 text-sm leading-relaxed">
                                 深入研究三角形的外心、內心與重心。觀察在不同形狀的三角形中，三心的交點軌跡與其獨特的幾何特性。
                             </p>
@@ -154,14 +179,14 @@
                     </div>
                 </a>
 
-                <!-- 原 4 -> 改為 5. 二次函數 -->
+                <!-- 原 5 -> 改為 6. 二次函數 -->
                 <a href="https://changyiwu.github.io/math/index3.html" target="_blank" class="hover-scale">
                     <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
                         <div class="card-gradient-4 h-40 flex items-center justify-center">
                             <i class="fas fa-chart-line text-white text-6xl opacity-90"></i>
                         </div>
                         <div class="p-6 flex-grow">
-                            <h3 class="text-xl font-bold text-gray-800 mb-2">5. 二次函數</h3>
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">6. 二次函數</h3>
                             <p class="text-gray-600 text-sm leading-relaxed">
                                 互動式探索拋物線的奧秘。調整參數 a, h, k 觀察平移與伸縮變幻，直觀掌握二次函數與座標軸的關係。
                             </p>
