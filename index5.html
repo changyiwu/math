@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>布萊克吳數學實驗室 - 立體圖形</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f2f5;
+        }
+
+        .card-gradient-2 {
+            background: linear-gradient(135deg, #2af598 0%, #009efd 100%);
+        }
+
+        .hover-scale {
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .hover-scale:hover {
+            transform: translateY(-8px) scale(1.02);
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12">
+
+    <!-- 導覽列 -->
+    <nav class="bg-white shadow-md p-4 mb-8">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-shapes text-indigo-600 text-2xl"></i>
+                <span class="text-xl font-bold text-gray-800">布萊克吳數學實驗室</span>
+            </div>
+            <div class="text-sm text-gray-500 hidden sm:block">
+                Gemini 互動教學資源整合
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4">
+        
+        <!-- 標題區 -->
+        <header class="text-center mb-12">
+            <h1 class="text-4xl font-extrabold text-gray-900 mb-4">動態幾何學習入口</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                點擊下方的工具卡片，即可開啟對應的立體圖形展開圖模擬器進行探索與實驗。
+            </p>
+        </header>
+
+        <!-- 立體圖形區段 -->
+        <section class="max-w-6xl mx-auto">
+            <div class="flex items-center mb-6 border-l-4 border-emerald-500 pl-4">
+                <h2 class="text-2xl font-bold text-gray-800">立體圖形</h2>
+            </div>
+            
+            <!-- 調整網格欄數：手機1欄, 平板2欄, 電腦4欄，縮小卡片寬度 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- 四角柱展開圖 -->
+                <a href="https://gemini.google.com/share/817a0e6a6129" target="_blank" class="hover-scale">
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
+                        <div class="card-gradient-2 h-24 flex items-center justify-center">
+                            <i class="fas fa-cube text-white text-4xl opacity-80"></i>
+                        </div>
+                        <div class="p-5 flex-grow">
+                            <h3 class="text-lg font-bold text-gray-800 mb-2">四角柱展開圖</h3>
+                            <p class="text-gray-600 text-xs leading-relaxed">
+                                探索四角柱的結構，觀察側面與底面如何組成，並練習計算表面積。
+                            </p>
+                        </div>
+                        <div class="px-5 pb-5 mt-auto">
+                            <span class="inline-block w-full text-center bg-emerald-50 text-emerald-600 font-bold py-2 text-sm rounded-lg border border-emerald-100">
+                                進入實驗室 <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- 四角錐展開圖 -->
+                <a href="https://gemini.google.com/share/ec93e76b00ce" target="_blank" class="hover-scale">
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
+                        <div class="card-gradient-2 h-24 flex items-center justify-center">
+                            <i class="fas fa-pyramid text-white text-4xl opacity-80"></i>
+                        </div>
+                        <div class="p-5 flex-grow">
+                            <h3 class="text-lg font-bold text-gray-800 mb-2">四角錐展開圖</h3>
+                            <p class="text-gray-600 text-xs leading-relaxed">
+                                動態展示四角錐的展開過程，幫助理解錐體頂點與底邊的空間關係。
+                            </p>
+                        </div>
+                        <div class="px-5 pb-5 mt-auto">
+                            <span class="inline-block w-full text-center bg-emerald-50 text-emerald-600 font-bold py-2 text-sm rounded-lg border border-emerald-100">
+                                進入實驗室 <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- 圓柱展開圖 -->
+                <a href="https://gemini.google.com/share/48102dd4ccf8" target="_blank" class="hover-scale">
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
+                        <div class="card-gradient-2 h-24 flex items-center justify-center">
+                            <i class="fas fa-database text-white text-4xl opacity-80"></i>
+                        </div>
+                        <div class="p-5 flex-grow">
+                            <h3 class="text-lg font-bold text-gray-800 mb-2">圓柱展開圖</h3>
+                            <p class="text-gray-600 text-xs leading-relaxed">
+                                直觀呈現圓柱側面展開後為長方形的特性，連結圓周長與長方形長度。
+                            </p>
+                        </div>
+                        <div class="px-5 pb-5 mt-auto">
+                            <span class="inline-block w-full text-center bg-emerald-50 text-emerald-600 font-bold py-2 text-sm rounded-lg border border-emerald-100">
+                                進入實驗室 <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- 圓錐展開圖 -->
+                <a href="https://gemini.google.com/share/32a76615444d" target="_blank" class="hover-scale">
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
+                        <div class="card-gradient-2 h-24 flex items-center justify-center">
+                            <i class="fas fa-conical text-white text-4xl opacity-80"></i>
+                        </div>
+                        <div class="p-5 flex-grow">
+                            <h3 class="text-lg font-bold text-gray-800 mb-2">圓錐展開圖</h3>
+                            <p class="text-gray-600 text-xs leading-relaxed">
+                                探索圓錐側面展開後的扇形構造，理解母線與底圓半徑的關聯。
+                            </p>
+                        </div>
+                        <div class="px-5 pb-5 mt-auto">
+                            <span class="inline-block w-full text-center bg-emerald-50 text-emerald-600 font-bold py-2 text-sm rounded-lg border border-emerald-100">
+                                進入實驗室 <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="mt-20 text-center text-gray-400 text-sm">
+        <p>© 布萊克吳數學實驗室 | 教育資源分享</p>
+    </footer>
+
+</body>
+</html>

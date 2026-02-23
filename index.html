@@ -35,9 +35,14 @@
             background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
         }
 
-        /* 新增：線性函數專用漸層 (莓果紅/紫色系) */
+        /* 線性函數專用漸層 (莓果紅/紫色系) */
         .card-gradient-new {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        /* 新增：立體圖形專用漸層 (深紫/靛藍色系) */
+        .card-gradient-solid {
+            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
         }
 
         .hover-scale {
@@ -76,7 +81,6 @@
 
         <!-- 主要資源區段 -->
         <section class="mb-16">
-            <!-- 調整 Grid 設定以適應 6 張卡片 -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 
                 <!-- 1. 整數加法視覺化 -->
@@ -99,7 +103,7 @@
                     </div>
                 </a>
 
-                <!-- 新增：2. 線性函數 (使用新漸層) -->
+                <!-- 2. 線型函數 -->
                 <a href="https://changyiwu.github.io/math/index4.html" target="_blank" class="hover-scale">
                     <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
                         <div class="card-gradient-new h-40 flex items-center justify-center">
@@ -119,7 +123,7 @@
                     </div>
                 </a>
 
-                <!-- 原 2 -> 改為 3. 三視圖投影 -->
+                <!-- 3. 三視圖投影 -->
                 <a href="https://gemini.google.com/share/8d16481a58bc" target="_blank" class="hover-scale">
                     <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
                         <div class="card-gradient-1 h-40 flex items-center justify-center">
@@ -139,7 +143,7 @@
                     </div>
                 </a>
 
-                <!-- 原 3 -> 改為 4. 多邊形內外角和 -->
+                <!-- 4. 多邊形內外角和 -->
                 <a href="https://changyiwu.github.io/math/index1.html" target="_blank" class="hover-scale">
                     <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
                         <div class="card-gradient-2 h-40 flex items-center justify-center">
@@ -159,7 +163,7 @@
                     </div>
                 </a>
 
-                <!-- 原 4 -> 改為 5. 三角形三心 -->
+                <!-- 5. 三角形三心 -->
                 <a href="https://changyiwu.github.io/math/index2.html" target="_blank" class="hover-scale">
                     <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
                         <div class="card-gradient-3 h-40 flex items-center justify-center">
@@ -179,7 +183,7 @@
                     </div>
                 </a>
 
-                <!-- 原 5 -> 改為 6. 二次函數 -->
+                <!-- 6. 二次函數 -->
                 <a href="https://changyiwu.github.io/math/index3.html" target="_blank" class="hover-scale">
                     <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
                         <div class="card-gradient-4 h-40 flex items-center justify-center">
@@ -199,6 +203,26 @@
                     </div>
                 </a>
 
+                <!-- 7. 立體圖形 -->
+                <a href="https://changyiwu.github.io/math/index5.html" target="_blank" class="hover-scale">
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
+                        <div class="card-gradient-solid h-40 flex items-center justify-center">
+                            <i class="fas fa-cubes text-white text-6xl opacity-90"></i>
+                        </div>
+                        <div class="p-6 flex-grow">
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">7. 立體圖形</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                探索各式立體幾何圖形。透過旋轉與拆解，觀察角柱、角錐與圓柱的結構特徵，建立完整的空間感與幾何觀念。
+                            </p>
+                        </div>
+                        <div class="px-6 pb-6 mt-auto">
+                            <span class="inline-block w-full text-center bg-purple-50 text-purple-600 font-bold py-2 rounded-lg border border-purple-100">
+                                進入實驗室 <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+
             </div>
         </section>
 
@@ -211,6 +235,3 @@
 </body>
 
 </html>
-
-
-
