@@ -25,6 +25,14 @@
         .hover-scale:hover {
             transform: translateY(-8px) scale(1.02);
         }
+
+        /* 自定義 SVG 圖示大小 */
+        .shape-icon {
+            width: 48px;
+            height: 48px;
+            fill: white;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
     </style>
 </head>
 <body class="min-h-screen pb-12">
@@ -58,13 +66,17 @@
                 <h2 class="text-2xl font-bold text-gray-800">立體圖形</h2>
             </div>
             
-            <!-- 調整網格欄數：手機1欄, 平板2欄, 電腦4欄，縮小卡片寬度 -->
+            <!-- 網格佈局 -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                
                 <!-- 四角柱展開圖 -->
                 <a href="https://gemini.google.com/share/817a0e6a6129" target="_blank" class="hover-scale">
                     <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
                         <div class="card-gradient-2 h-24 flex items-center justify-center">
-                            <i class="fas fa-cube text-white text-4xl opacity-80"></i>
+                            <!-- 立方體/四角柱 SVG -->
+                            <svg class="shape-icon" viewBox="0 0 24 24">
+                                <path d="M21,16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V7.5C3,7.12 3.21,6.79 3.53,6.62L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.79,6.79 21,7.12 21,7.5V16.5Z" />
+                            </svg>
                         </div>
                         <div class="p-5 flex-grow">
                             <h3 class="text-lg font-bold text-gray-800 mb-2">四角柱展開圖</h3>
@@ -84,7 +96,11 @@
                 <a href="https://gemini.google.com/share/ec93e76b00ce" target="_blank" class="hover-scale">
                     <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
                         <div class="card-gradient-2 h-24 flex items-center justify-center">
-                            <i class="fas fa-pyramid text-white text-4xl opacity-80"></i>
+                            <!-- 四角錐 SVG -->
+                            <svg class="shape-icon" viewBox="0 0 24 24">
+                                <path d="M12,2L2,19H22L12,2M12,6L18.5,17H5.5L12,6Z" opacity="0.3"/>
+                                <path d="M12,2L2,19L12,22L22,19L12,2M12,5.12L18.45,17.5L12,19.3L5.55,17.5L12,5.12Z" />
+                            </svg>
                         </div>
                         <div class="p-5 flex-grow">
                             <h3 class="text-lg font-bold text-gray-800 mb-2">四角錐展開圖</h3>
@@ -104,7 +120,10 @@
                 <a href="https://gemini.google.com/share/48102dd4ccf8" target="_blank" class="hover-scale">
                     <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
                         <div class="card-gradient-2 h-24 flex items-center justify-center">
-                            <i class="fas fa-database text-white text-4xl opacity-80"></i>
+                            <!-- 圓柱 SVG -->
+                            <svg class="shape-icon" viewBox="0 0 24 24">
+                                <path d="M12,3C16.42,3 20,4.34 20,6V18C20,19.66 16.42,21 12,21C7.58,21 4,19.66 4,18V6C4,4.34 7.58,3 12,3M12,5C10.05,5 8.13,5.3 7,5.83C5.66,6.46 5,7.03 5,7.5V18C5,18.47 5.66,19.04 7,19.67C8.13,20.2 10.05,20.5 12,20.5C13.95,20.5 15.87,20.2 17,19.67C18.34,19.04 19,18.47 19,18V7.5C19,7.03 18.34,6.46 17,5.83C15.87,5.3 13.95,5 12,5Z" />
+                            </svg>
                         </div>
                         <div class="p-5 flex-grow">
                             <h3 class="text-lg font-bold text-gray-800 mb-2">圓柱展開圖</h3>
@@ -124,7 +143,10 @@
                 <a href="https://gemini.google.com/share/32a76615444d" target="_blank" class="hover-scale">
                     <div class="bg-white rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
                         <div class="card-gradient-2 h-24 flex items-center justify-center">
-                            <i class="fas fa-conical text-white text-4xl opacity-80"></i>
+                            <!-- 圓錐 SVG -->
+                            <svg class="shape-icon" viewBox="0 0 24 24">
+                                <path d="M12,2L4.5,20.29C5.21,20.72 6.5,21.25 8.5,21.64C10.5,22.03 13.5,22.03 15.5,21.64C17.5,21.25 18.79,20.72 19.5,20.29L12,2M12,4.83L17.5,18.17C15.87,19.04 13.95,19.5 12,19.5C10.05,19.5 8.13,19.04 6.5,18.17L12,4.83Z" />
+                            </svg>
                         </div>
                         <div class="p-5 flex-grow">
                             <h3 class="text-lg font-bold text-gray-800 mb-2">圓錐展開圖</h3>
