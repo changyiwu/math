@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>課堂互動與抽籤大補帖</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Noto Sans TC & Outfit -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Noto+Sans+TC:wght@300;400;700&display=swap');
+        
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,0) 0, transparent 50%),
+                              radial-gradient(at 50% 0%, hsla(225,39%,30%,0.05) 0, transparent 50%),
+                              radial-gradient(at 100% 0%, hsla(339,49%,30%,0.05) 0, transparent 50%);
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        /* 3D 骰子樣式 */
+        .scene {
+            width: 100px;
+            height: 100px;
+            perspective: 400px;
+        }
+
+        .cube {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 1.5s cubic-bezier(0.25, 0.8, 0.25, 1.1);
+        }
+
+        .face {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 16px;
+            display: grid;
+            grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+            padding: 8px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.05), 0 4px 10px rgba(0,0,0,0.1);
+            backface-visibility: hidden;
+        }
+
+        /* 骰子點數擺放 */
+        .dot {
+            display: block;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background-color: #1f2937;
+            align-self: center;
+            justify-self: center;
+        }
+        .dot.red {
+            background-color: #ef4444;
+            width: 20px;
+            height: 20px;
+        }
+
+        .face.front  { transform: rotateY(  0deg) translateZ(50px); }
+        .face.back   { transform: rotateY(180deg) translateZ(50px); }
+        .face.right  { transform: rotateY( 90deg) translateZ(50px); }
+        .face.left   { transform: rotateY(-90deg) translateZ(50px); }
+        .face.top    { transform: rotateX( 90deg) translateZ(50px); }
+        .face.bottom { transform: rotateX(-90deg) translateZ(50px); }
+
+        /* 計分板列表 transition */
+        .scoreboard-item {
+            transition: all 0.5s ease-in-out;
+        }
+    </style>
+    <!-- Canvas Confetti 灑花特效 -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body class="min-h-screen pb-12">
+
+    <!-- 導覽列 -->
+    <nav class="bg-white shadow-sm p-4 mb-6">
+        <div class="container mx-auto flex items-center justify-between">
+            <a href="index.html" class="flex items-center space-x-2 text-indigo-600 hover:text-indigo-800 transition">
+                <i class="fas fa-arrow-left text-lg"></i>
+                <span class="font-bold">返回首頁</span>
+            </a>
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-toolbox text-indigo-600 text-xl"></i>
+                <span class="text-xl font-bold text-gray-800">課堂互動與抽籤大補帖</span>
+            </div>
+            <div class="text-sm text-gray-400 hidden sm:block">
+                課堂必備小幫手
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主區塊 -->
+    <main class="container mx-auto px-4 max-w-6xl">
+
+        <!-- 功能分頁選單 -->
+        <div class="flex flex-wrap gap-2 mb-6 bg-gray-200/50 p-1.5 rounded-xl justify-center sm:justify-start">
+            <button onclick="switchTab('picker')" id="tab-picker" class="tab-btn px-5 py-2.5 rounded-lg text-sm font-bold flex items-center space-x-2 transition bg-indigo-600 text-white shadow-md">
+                <i class="fas fa-bullseye text-base"></i>
+                <span>🎯 隨機抽籤</span>
+            </button>
+            <button onclick="switchTab('group')" id="tab-group" class="tab-btn px-5 py-2.5 rounded-lg text-sm font-bold flex items-center space-x-2 transition text-gray-600 hover:bg-white/50">
+                <i class="fas fa-users text-base"></i>
+                <span>👥 隨機分組</span>
+            </button>
+            <button onclick="switchTab('timer')" id="tab-timer" class="tab-btn px-5 py-2.5 rounded-lg text-sm font-bold flex items-center space-x-2 transition text-gray-600 hover:bg-white/50">
+                <i class="fas fa-hourglass-half text-base"></i>
+                <span>⏱️ 課堂計時</span>
+            </button>
+            <button onclick="switchTab('score')" id="tab-score" class="tab-btn px-5 py-2.5 rounded-lg text-sm font-bold flex items-center space-x-2 transition text-gray-600 hover:bg-white/50">
+                <i class="fas fa-trophy text-base"></i>
+                <span>🏆 搶答計分</span>
+            </button>
+            <button onclick="switchTab('dice')" id="tab-dice" class="tab-btn px-5 py-2.5 rounded-lg text-sm font-bold flex items-center space-x-2 transition text-gray-600 hover:bg-white/50">
+                <i class="fas fa-dice text-base"></i>
+                <span>🎲 骰子輪盤</span>
+            </button>
+        </div>
+
+        <!-- ==================== 1. 隨機抽籤 ==================== -->
+        <section id="panel-picker" class="tab-panel grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- 左側設定名單 -->
+            <div class="glass-panel p-6 rounded-2xl shadow-lg flex flex-col h-[520px]">
+                <h3 class="text-lg font-bold text-gray-800 mb-3 flex items-center">
+                    <i class="fas fa-list-ol text-indigo-600 mr-2"></i> 抽籤名單設定
+                </h3>
+                <textarea id="picker-names" class="flex-grow p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 font-mono text-sm resize-none mb-3" placeholder="請輸入名單，每個名字或座號用逗號或換行隔開..."></textarea>
+                
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <button onclick="loadDefaultPicker(30)" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg transition">
+                        1-30號
+                    </button>
+                    <button onclick="loadDefaultPicker(40)" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg transition">
+                        1-40號
+                    </button>
+                </div>
+                <button onclick="clearPickerNames()" class="w-full py-2 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-lg transition border border-red-100 mb-3">
+                    <i class="fas fa-trash-can mr-1"></i> 清空名單
+                </button>
+
+                <!-- 設定 -->
+                <div class="border-t border-gray-100 pt-3">
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" id="picker-no-repeat" class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                        <span class="text-sm font-semibold text-gray-700">不重複抽籤 (抽完不回填)</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 右側展示與抽籤 -->
+            <div class="glass-panel p-6 rounded-2xl shadow-lg lg:col-span-2 flex flex-col justify-between h-[520px]">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-gray-800">🎯 隨機抽籤大舞台</h3>
+                    <div id="picker-count-badge" class="text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full">
+                        待抽人數: <span id="picker-left-count">0</span> 人
+                    </div>
+                </div>
+
+                <!-- 顯示大字 -->
+                <div class="flex-grow flex items-center justify-center bg-indigo-900/5 rounded-2xl border-2 border-dashed border-indigo-200/50 mb-6 relative overflow-hidden">
+                    <div id="picker-display" class="text-5xl md:text-7xl font-extrabold text-indigo-900 tracking-wider transition-all duration-100 text-center px-4">
+                        準備就緒
+                    </div>
+                </div>
+
+                <!-- 抽籤控制 -->
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button id="btn-pick-single" onclick="startPicking(1)" class="flex-1 py-4 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-extrabold text-lg rounded-xl shadow-md transition transform active:scale-95 flex items-center justify-center space-x-2">
+                        <i class="fas fa-play"></i>
+                        <span>單人抽籤</span>
+                    </button>
+                    <button id="btn-pick-three" onclick="startPicking(3)" class="py-4 px-6 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold rounded-xl transition border border-indigo-100 flex items-center justify-center space-x-2">
+                        <span>抽取 3 人</span>
+                    </button>
+                    <button id="btn-pick-five" onclick="startPicking(5)" class="py-4 px-6 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold rounded-xl transition border border-indigo-100 flex items-center justify-center space-x-2">
+                        <span>抽取 5 人</span>
+                    </button>
+                    <button onclick="resetPicker()" class="py-4 px-6 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold rounded-xl transition flex items-center justify-center">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                </div>
+
+                <!-- 已抽名單 -->
+                <div class="mt-4 border-t border-gray-100 pt-3">
+                    <span class="text-xs font-semibold text-gray-500 block mb-1">已抽中紀錄：</span>
+                    <div id="picker-history" class="text-sm text-gray-700 bg-gray-50/50 p-2.5 rounded-lg border border-gray-100 overflow-x-auto whitespace-nowrap min-h-[40px] flex items-center gap-1.5">
+                        <span class="text-gray-400 text-xs">尚無抽中紀錄</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 2. 隨機分組 ==================== -->
+        <section id="panel-group" class="tab-panel grid grid-cols-1 lg:grid-cols-3 gap-6 hidden">
+            <!-- 左側名單與分組設定 -->
+            <div class="glass-panel p-6 rounded-2xl shadow-lg flex flex-col h-[520px]">
+                <h3 class="text-lg font-bold text-gray-800 mb-3 flex items-center">
+                    <i class="fas fa-users-viewfinder text-indigo-600 mr-2"></i> 分組名單與設定
+                </h3>
+                <textarea id="group-names" class="flex-grow p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 font-mono text-sm resize-none mb-3" placeholder="請輸入名單，每個名字或座號用逗號或換行隔開..."></textarea>
+                
+                <!-- 預設按鈕 -->
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <button onclick="loadDefaultGroup(30)" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg transition">
+                        1-30號
+                    </button>
+                    <button onclick="loadDefaultGroup(40)" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg transition">
+                        1-40號
+                    </button>
+                </div>
+
+                <!-- 分組參數 -->
+                <div class="space-y-3 mb-4 bg-indigo-50/30 p-3 rounded-xl border border-indigo-100/50">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-bold text-gray-700">分組模式：</span>
+                        <div class="flex bg-gray-200 p-0.5 rounded-lg text-xs font-bold">
+                            <button id="group-mode-count" onclick="switchGroupMode('count')" class="px-3 py-1 bg-white rounded-md shadow-sm text-indigo-600 transition">指定組數</button>
+                            <button id="group-mode-size" onclick="switchGroupMode('size')" class="px-3 py-1 text-gray-600 rounded-md transition">每組人數</button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <span id="group-label-num" class="text-sm font-semibold text-gray-600">要分成的組數：</span>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="adjustGroupNum(-1)" class="w-8 h-8 rounded-full bg-white hover:bg-gray-100 border text-gray-700 font-bold flex items-center justify-center transition shadow-sm">-</button>
+                            <input type="number" id="group-num-input" value="4" min="2" max="100" class="w-12 text-center font-bold bg-transparent border-b focus:outline-none focus:border-indigo-500">
+                            <button onclick="adjustGroupNum(1)" class="w-8 h-8 rounded-full bg-white hover:bg-gray-100 border text-gray-700 font-bold flex items-center justify-center transition shadow-sm">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="generateGroups()" class="w-full py-3.5 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-extrabold text-base rounded-xl shadow-md transition transform active:scale-95 flex items-center justify-center space-x-2">
+                    <i class="fas fa-people-group"></i>
+                    <span>一鍵隨機分組</span>
+                </button>
+            </div>
+
+            <!-- 右側分組結果 -->
+            <div class="glass-panel p-6 rounded-2xl shadow-lg lg:col-span-2 flex flex-col justify-between h-[520px]">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-gray-800">👥 分組結果</h3>
+                    <button onclick="copyGroupResults()" class="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 px-3.5 py-1.5 rounded-lg transition flex items-center space-x-1">
+                        <i class="fas fa-copy"></i>
+                        <span>複製分組結果</span>
+                    </button>
+                </div>
+
+                <!-- 結果卡片容器 -->
+                <div id="group-results-container" class="flex-grow bg-indigo-900/5 rounded-2xl border-2 border-dashed border-indigo-200/50 p-4 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-[300px] content-start">
+                    <div class="col-span-full h-full flex flex-col items-center justify-center text-gray-400">
+                        <i class="fas fa-users text-4xl mb-2 opacity-50"></i>
+                        <span>設定名單並點擊「一鍵分組」</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 3. 課堂計時 ==================== -->
+        <section id="panel-timer" class="tab-panel glass-panel p-6 rounded-2xl shadow-lg flex flex-col items-center justify-center min-h-[520px] hidden">
+            <!-- 圓環計時器區 -->
+            <div class="relative w-64 h-64 flex items-center justify-center mb-6">
+                <!-- SVG 環狀進度條 -->
+                <svg class="w-full h-full transform -rotate-90">
+                    <circle cx="128" cy="128" r="116" stroke="#e5e7eb" stroke-width="12" fill="transparent" />
+                    <circle id="timer-progress" cx="128" cy="128" r="116" stroke="#4f46e5" stroke-width="12" fill="transparent" stroke-linecap="round" stroke-dasharray="728.8" stroke-dashoffset="0" class="transition-all duration-300" />
+                </svg>
+                
+                <!-- 時間大字與狀態 -->
+                <div class="absolute text-center">
+                    <div id="timer-display" class="text-5xl font-extrabold text-gray-800 tracking-wider">01:00</div>
+                    <div id="timer-status" class="text-xs font-semibold text-gray-400 mt-1">請設定時間後開始</div>
+                </div>
+            </div>
+
+            <!-- 快捷鍵 -->
+            <div class="flex flex-wrap gap-2 mb-6 justify-center">
+                <button onclick="setTimerSeconds(30)" class="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-sm font-bold rounded-lg border border-indigo-100 transition">
+                    30 秒
+                </button>
+                <button onclick="setTimerSeconds(60)" class="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-sm font-bold rounded-lg border border-indigo-100 transition">
+                    1 分鐘
+                </button>
+                <button onclick="setTimerSeconds(180)" class="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-sm font-bold rounded-lg border border-indigo-100 transition">
+                    3 分鐘
+                </button>
+                <button onclick="setTimerSeconds(300)" class="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-sm font-bold rounded-lg border border-indigo-100 transition">
+                    5 分鐘
+                </button>
+                <button onclick="setTimerSeconds(600)" class="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-sm font-bold rounded-lg border border-indigo-100 transition">
+                    10 分鐘
+                </button>
+            </div>
+
+            <!-- 控制按鈕 -->
+            <div class="flex items-center space-x-3 mb-6">
+                <!-- 自訂輸入 -->
+                <div class="flex items-center space-x-1 border border-gray-200 bg-white px-3 py-2 rounded-xl text-sm font-semibold text-gray-700 shadow-sm mr-4">
+                    <input type="number" id="timer-custom-min" value="1" min="0" max="60" class="w-8 text-center bg-transparent border-b focus:outline-none font-bold">
+                    <span>分</span>
+                    <input type="number" id="timer-custom-sec" value="0" min="0" max="59" class="w-8 text-center bg-transparent border-b focus:outline-none font-bold">
+                    <span>秒</span>
+                    <button onclick="applyCustomTimer()" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-2.5 rounded ml-2 transition">
+                        套用
+                    </button>
+                </div>
+
+                <button id="btn-timer-start" onclick="toggleTimer()" class="w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold flex items-center justify-center transition shadow-md hover:scale-105">
+                    <i id="icon-timer-start" class="fas fa-play text-lg ml-0.5"></i>
+                </button>
+                <button onclick="resetTimer()" class="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 text-white font-bold flex items-center justify-center transition shadow-md hover:scale-105">
+                    <i class="fas fa-redo text-lg"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- ==================== 4. 搶答計分 ==================== -->
+        <section id="panel-score" class="tab-panel glass-panel p-6 rounded-2xl shadow-lg flex flex-col min-h-[520px] hidden">
+            <!-- 頂部控制 -->
+            <div class="flex flex-col sm:flex-row items-center justify-between mb-6 pb-4 border-b border-gray-100 gap-4">
+                <h3 class="text-lg font-bold text-gray-800">🏆 課堂搶答計分板</h3>
+                <div class="flex space-x-2">
+                    <input type="text" id="score-new-team" placeholder="輸入隊伍名稱..." class="px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    <button onclick="addNewTeam()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl transition shadow-md">
+                        <i class="fas fa-plus mr-1"></i> 新增隊伍
+                    </button>
+                    <button onclick="resetAllScores()" class="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 text-sm font-bold rounded-xl transition">
+                        <i class="fas fa-redo mr-1"></i> 全部重設
+                    </button>
+                </div>
+            </div>
+
+            <!-- 計分板列表 -->
+            <div id="scoreboard-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 flex-grow content-start">
+                <!-- 動態載入隊伍 -->
+            </div>
+        </section>
+
+        <!-- ==================== 5. 骰子輪盤 ==================== -->
+        <section id="panel-dice" class="tab-panel grid grid-cols-1 lg:grid-cols-2 gap-6 hidden">
+            <!-- 左半部: 3D 骰子 -->
+            <div class="glass-panel p-6 rounded-2xl shadow-lg flex flex-col items-center justify-between min-h-[520px]">
+                <div class="w-full flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
+                    <h3 class="text-lg font-bold text-gray-800">🎲 課堂隨機骰子</h3>
+                    <div class="flex items-center space-x-1.5">
+                        <span class="text-xs font-bold text-gray-500">個數：</span>
+                        <select id="dice-count-select" class="bg-gray-100 border border-gray-200 rounded px-2 py-1 text-xs font-bold focus:outline-none">
+                            <option value="1">1 顆</option>
+                            <option value="2">2 顆</option>
+                            <option value="3">3 顆</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 骰子展示舞台 -->
+                <div class="flex-grow flex items-center justify-center space-x-6 py-6" id="dice-stage">
+                    <div class="scene">
+                        <div class="cube" id="dice-1">
+                            <div class="face front"><span class="dot red"></span></div>
+                            <div class="face back"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                            <div class="face right"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                            <div class="face left"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                            <div class="face top"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                            <div class="face bottom"><span class="dot"></span><span class="dot"></span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 顯示結果 -->
+                <div class="text-center mb-6">
+                    <div id="dice-result-sum" class="text-2xl font-bold text-gray-800">點數：-</div>
+                </div>
+
+                <button onclick="rollDice()" class="w-full py-4 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-extrabold text-lg rounded-xl shadow-md transition transform active:scale-95 flex items-center justify-center space-x-2">
+                    <i class="fas fa-dice"></i>
+                    <span>開始擲骰子</span>
+                </button>
+            </div>
+
+            <!-- 右半部: 轉輪盤 -->
+            <div class="glass-panel p-6 rounded-2xl shadow-lg flex flex-col items-center justify-between min-h-[520px]">
+                <div class="w-full flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
+                    <h3 class="text-lg font-bold text-gray-800">🎡 課堂隨機輪盤</h3>
+                    <input type="text" id="wheel-items-input" value="A, B, C, D, E, F" class="px-2.5 py-1 bg-gray-100 border border-gray-200 rounded text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-400 w-44" placeholder="選項以逗號分隔...">
+                </div>
+
+                <!-- 輪盤主體 -->
+                <div class="relative w-64 h-64 flex items-center justify-center py-4">
+                    <!-- 指針 -->
+                    <div class="absolute -top-1 w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[20px] border-t-red-500 z-10 filter drop-shadow-md"></div>
+                    <!-- 畫布 -->
+                    <canvas id="wheel-canvas" width="250" height="250" class="rounded-full shadow-lg transition-transform" style="transition: transform 4s cubic-bezier(0.1, 0.8, 0.1, 1);"></canvas>
+                </div>
+
+                <div class="text-center mb-4">
+                    <div id="wheel-result-text" class="text-xl font-bold text-gray-800">結果：-</div>
+                </div>
+
+                <button onclick="spinWheel()" class="w-full py-4 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-extrabold text-lg rounded-xl shadow-md transition transform active:scale-95 flex items-center justify-center space-x-2">
+                    <i class="fas fa-circle-notch"></i>
+                    <span>開始旋轉輪盤</span>
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="mt-12 text-center text-gray-400 text-sm">
+        <p>© 2026 布萊克吳數學實驗室 | 課堂隨機工具系統</p>
+    </footer>
+
+    <!-- ==================== JavaScript 邏輯 ==================== -->
+    <script>
+        // 分頁切換
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.add('hidden'));
+            document.getElementById('panel-' + tabId).classList.remove('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn px-5 py-2.5 rounded-lg text-sm font-bold flex items-center space-x-2 transition text-gray-600 hover:bg-white/50";
+            });
+            const activeBtn = document.getElementById('tab-' + tabId);
+            activeBtn.className = "tab-btn px-5 py-2.5 rounded-lg text-sm font-bold flex items-center space-x-2 transition bg-indigo-600 text-white shadow-md";
+        }
+
+        // ==================== 1. 隨機抽籤邏輯 ====================
+        let pickerNames = [];
+        let pickerHistory = [];
+
+        function parseNames(text) {
+            return text.split(/[\n,，]+/)
+                       .map(n => n.trim())
+                       .filter(n => n.length > 0);
+        }
+
+        function loadDefaultPicker(num) {
+            let names = [];
+            for(let i=1; i<=num; i++) names.push(i + '號');
+            document.getElementById('picker-names').value = names.join('\n');
+            updatePickerCounts();
+        }
+
+        function clearPickerNames() {
+            document.getElementById('picker-names').value = '';
+            updatePickerCounts();
+        }
+
+        function updatePickerCounts() {
+            const text = document.getElementById('picker-names').value;
+            const all = parseNames(text);
+            const isNoRepeat = document.getElementById('picker-no-repeat').checked;
+            
+            if (isNoRepeat) {
+                // 過濾掉已經抽中的
+                const left = all.filter(n => !pickerHistory.includes(n));
+                document.getElementById('picker-left-count').innerText = left.length;
+            } else {
+                document.getElementById('picker-left-count').innerText = all.length;
+            }
+        }
+
+        document.getElementById('picker-names').addEventListener('input', updatePickerCounts);
+        document.getElementById('picker-no-repeat').addEventListener('change', () => {
+            updatePickerCounts();
+        });
+
+        // 簡短網頁音效
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTick() {
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(800, now);
+            gain.gain.setValueAtTime(0.05, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+            osc.start(now);
+            osc.stop(now + 0.05);
+        }
+
+        function playDing() {
+            const now = audioCtx.currentTime;
+            function note(freq, start, dur) {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(freq, start);
+                gain.gain.setValueAtTime(0.2, start);
+                gain.gain.exponentialRampToValueAtTime(0.01, start + dur);
+                osc.start(start);
+                osc.stop(start + dur);
+            }
+            note(523.25, now, 0.15);
+            note(659.25, now + 0.15, 0.15);
+            note(783.99, now + 0.3, 0.15);
+            note(1046.50, now + 0.45, 0.45);
+        }
+
+        let pickingInterval = null;
+        function startPicking(count) {
+            if (pickingInterval) return;
+            const text = document.getElementById('picker-names').value;
+            const allNames = parseNames(text);
+            
+            if (allNames.length === 0) {
+                alert('請先輸入名單！');
+                return;
+            }
+
+            const isNoRepeat = document.getElementById('picker-no-repeat').checked;
+            let available = [...allNames];
+
+            if (isNoRepeat) {
+                available = allNames.filter(n => !pickerHistory.includes(n));
+                if (available.length < count) {
+                    alert('剩餘名單人數不足，請點擊重設！');
+                    return;
+                }
+            }
+
+            const display = document.getElementById('picker-display');
+            let counter = 0;
+            const duration = 2000; // 2秒
+            const intervalTime = 60;
+            const steps = duration / intervalTime;
+
+            // 滾動效果
+            pickingInterval = setInterval(() => {
+                const tempIndex = Math.floor(Math.random() * available.length);
+                display.innerText = available[tempIndex];
+                playTick();
+                counter++;
+
+                if (counter >= steps) {
+                    clearInterval(pickingInterval);
+                    pickingInterval = null;
+
+                    // 決定最終結果
+                    let selected = [];
+                    for(let i=0; i<count; i++) {
+                        const idx = Math.floor(Math.random() * available.length);
+                        selected.push(available[idx]);
+                        if (isNoRepeat) {
+                            pickerHistory.push(available[idx]);
+                            available.splice(idx, 1);
+                        }
+                    }
+
+                    // 顯示結果
+                    display.innerText = selected.join('、');
+                    playDing();
+                    confetti({
+                        particleCount: 150,
+                        spread: 80,
+                        origin: { y: 0.6 }
+                    });
+
+                    // 記錄到歷史
+                    updatePickerHistoryUI();
+                    updatePickerCounts();
+                }
+            }, intervalTime);
+        }
+
+        function updatePickerHistoryUI() {
+            const container = document.getElementById('picker-history');
+            if (pickerHistory.length === 0) {
+                container.innerHTML = '<span class="text-gray-400 text-xs">尚無抽中紀錄</span>';
+                return;
+            }
+            container.innerHTML = pickerHistory.map((name, idx) => `
+                <span class="inline-block bg-indigo-100 text-indigo-700 text-xs px-2.5 py-1 rounded-md font-semibold border border-indigo-200">
+                    ${idx+1}. ${name}
+                </span>
+            `).join('');
+        }
+
+        function resetPicker() {
+            pickerHistory = [];
+            document.getElementById('picker-display').innerText = '準備就緒';
+            updatePickerHistoryUI();
+            updatePickerCounts();
+        }
+
+
+        // ==================== 2. 隨機分組邏輯 ====================
+        let groupMode = 'count'; // count or size
+
+        function loadDefaultGroup(num) {
+            let names = [];
+            for(let i=1; i<=num; i++) names.push(i + '號');
+            document.getElementById('group-names').value = names.join('\n');
+        }
+
+        function switchGroupMode(mode) {
+            groupMode = mode;
+            document.getElementById('group-mode-count').className = mode === 'count' ? "px-3 py-1 bg-white rounded-md shadow-sm text-indigo-600 transition" : "px-3 py-1 text-gray-600 rounded-md transition";
+            document.getElementById('group-mode-size').className = mode === 'size' ? "px-3 py-1 bg-white rounded-md shadow-sm text-indigo-600 transition" : "px-3 py-1 text-gray-600 rounded-md transition";
+            
+            document.getElementById('group-label-num').innerText = mode === 'count' ? '要分成的組數：' : '每組理想人數：';
+        }
+
+        function adjustGroupNum(val) {
+            const input = document.getElementById('group-num-input');
+            let current = parseInt(input.value);
+            if (isNaN(current)) current = 2;
+            input.value = Math.max(2, current + val);
+        }
+
+        // 費雪-葉茲隨機洗牌
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        let lastGeneratedGroups = [];
+
+        function generateGroups() {
+            const text = document.getElementById('group-names').value;
+            const names = parseNames(text);
+            if (names.length === 0) {
+                alert('請先輸入名單！');
+                return;
+            }
+
+            const param = parseInt(document.getElementById('group-num-input').value);
+            if (isNaN(param) || param < 1) {
+                alert('請輸入有效的分組參數');
+                return;
+            }
+
+            // 洗牌
+            const shuffled = shuffle([...names]);
+            let groups = [];
+
+            if (groupMode === 'count') {
+                // 指定組數
+                const count = Math.min(param, shuffled.length);
+                for(let i=0; i<count; i++) groups.push([]);
+                shuffled.forEach((name, idx) => {
+                    groups[idx % count].push(name);
+                });
+            } else {
+                // 指定每組人數
+                const size = param;
+                const totalNames = shuffled.length;
+                const count = Math.ceil(totalNames / size);
+                for(let i=0; i<count; i++) {
+                    groups.push(shuffled.slice(i * size, (i + 1) * size));
+                }
+            }
+
+            lastGeneratedGroups = groups;
+            renderGroupsUI(groups);
+            playDing();
+        }
+
+        function renderGroupsUI(groups) {
+            const container = document.getElementById('group-results-container');
+            container.innerHTML = '';
+
+            groups.forEach((group, index) => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col justify-between";
+                card.innerHTML = `
+                    <div>
+                        <h4 class="font-bold text-indigo-700 border-b border-indigo-50 pb-1.5 mb-2 flex justify-between items-center">
+                            <span>第 ${index + 1} 組</span>
+                            <span class="text-xs font-semibold bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full">${group.length}人</span>
+                        </h4>
+                        <div class="flex flex-wrap gap-1.5">
+                            ${group.map(name => `<span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded font-semibold">${name}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function copyGroupResults() {
+            if (lastGeneratedGroups.length === 0) {
+                alert('請先進行分組！');
+                return;
+            }
+            let text = '=== 分組結果 ===\n';
+            lastGeneratedGroups.forEach((group, idx) => {
+                text += `第 ${idx + 1} 組：${group.join(', ')}\n`;
+            });
+
+            navigator.clipboard.writeText(text).then(() => {
+                alert('分組結果已複製到剪貼簿！');
+            }).catch(err => {
+                console.error('複製失敗:', err);
+            });
+        }
+
+
+        // ==================== 3. 課堂計時邏輯 ====================
+        let timerDuration = 60; // 預設 60 秒
+        let timerTimeLeft = 60;
+        let timerInterval = null;
+
+        function setTimerSeconds(sec) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            document.getElementById('icon-timer-start').className = "fas fa-play text-lg ml-0.5";
+            document.getElementById('btn-timer-start').className = "w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold flex items-center justify-center transition shadow-md hover:scale-105";
+            
+            timerDuration = sec;
+            timerTimeLeft = sec;
+            updateTimerUI();
+            document.getElementById('timer-status').innerText = '準備就緒';
+        }
+
+        function applyCustomTimer() {
+            const min = parseInt(document.getElementById('timer-custom-min').value) || 0;
+            const sec = parseInt(document.getElementById('timer-custom-sec').value) || 0;
+            setTimerSeconds(min * 60 + sec);
+        }
+
+        function updateTimerUI() {
+            const mins = Math.floor(timerTimeLeft / 60);
+            const secs = timerTimeLeft % 60;
+            document.getElementById('timer-display').innerText = 
+                `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+            // 環狀進度條
+            const percent = timerTimeLeft / timerDuration;
+            const maxOffset = 728.8; // 2 * Math.PI * 116
+            const strokeOffset = maxOffset * (1 - percent);
+            
+            const progressBar = document.getElementById('timer-progress');
+            progressBar.style.strokeDashoffset = strokeOffset;
+
+            // 隨時間快結束改變進度條顏色
+            if (percent > 0.5) {
+                progressBar.setAttribute('stroke', '#4f46e5'); // 靛藍
+            } else if (percent > 0.2) {
+                progressBar.setAttribute('stroke', '#f59e0b'); // 黃
+            } else {
+                progressBar.setAttribute('stroke', '#ef4444'); // 紅
+            }
+        }
+
+        function toggleTimer() {
+            if (timerInterval) {
+                // 暫停
+                clearInterval(timerInterval);
+                timerInterval = null;
+                document.getElementById('icon-timer-start').className = "fas fa-play text-lg ml-0.5";
+                document.getElementById('btn-timer-start').className = "w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold flex items-center justify-center transition shadow-md hover:scale-105";
+                document.getElementById('timer-status').innerText = '計時已暫停';
+            } else {
+                // 開始
+                if (timerTimeLeft <= 0) return;
+                document.getElementById('icon-timer-start').className = "fas fa-pause text-lg";
+                document.getElementById('btn-timer-start').className = "w-14 h-14 rounded-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold flex items-center justify-center transition shadow-md hover:scale-105";
+                document.getElementById('timer-status').innerText = '計時進行中...';
+
+                timerInterval = setInterval(() => {
+                    timerTimeLeft--;
+                    updateTimerUI();
+
+                    if (timerTimeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                        document.getElementById('icon-timer-start').className = "fas fa-play text-lg ml-0.5";
+                        document.getElementById('btn-timer-start').className = "w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold flex items-center justify-center transition shadow-md hover:scale-105";
+                        document.getElementById('timer-status').innerText = '時間到！';
+                        playDing();
+                        // 灑花庆祝
+                        confetti({
+                            particleCount: 100,
+                            spread: 60,
+                            origin: { y: 0.6 }
+                        });
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            document.getElementById('icon-timer-start').className = "fas fa-play text-lg ml-0.5";
+            document.getElementById('btn-timer-start').className = "w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold flex items-center justify-center transition shadow-md hover:scale-105";
+            
+            timerTimeLeft = timerDuration;
+            updateTimerUI();
+            document.getElementById('timer-status').innerText = '計時已重設';
+        }
+
+
+        // ==================== 4. 搶答計分邏輯 ====================
+        let scoreTeams = [
+            { id: 1, name: '第一組', score: 0 },
+            { id: 2, name: '第二組', score: 0 },
+            { id: 3, name: '第三組', score: 0 },
+            { id: 4, name: '第四組', score: 0 }
+        ];
+
+        function addNewTeam() {
+            const input = document.getElementById('score-new-team');
+            const name = input.value.trim();
+            if (name === '') return;
+
+            const nextId = scoreTeams.length > 0 ? Math.max(...scoreTeams.map(t => t.id)) + 1 : 1;
+            scoreTeams.push({ id: nextId, name: name, score: 0 });
+            input.value = '';
+            renderScoreboard();
+        }
+
+        function removeTeam(id) {
+            scoreTeams = scoreTeams.filter(t => t.id !== id);
+            renderScoreboard();
+        }
+
+        function changeScore(id, val) {
+            const team = scoreTeams.find(t => t.id === id);
+            if (team) {
+                team.score += val;
+                playTick();
+                
+                // 動態排序
+                scoreTeams.sort((a, b) => b.score - a.score);
+                renderScoreboard();
+            }
+        }
+
+        function resetAllScores() {
+            scoreTeams.forEach(t => t.score = 0);
+            // 重新按預設 ID 排序以回到初始位置
+            scoreTeams.sort((a, b) => a.id - b.id);
+            renderScoreboard();
+        }
+
+        function editTeamName(id, el) {
+            const name = el.innerText.trim();
+            const team = scoreTeams.find(t => t.id === id);
+            if (team) team.name = name;
+        }
+
+        function renderScoreboard() {
+            const container = document.getElementById('scoreboard-list');
+            container.innerHTML = '';
+
+            scoreTeams.forEach((team, index) => {
+                const card = document.createElement('div');
+                card.className = "scoreboard-item glass-panel p-5 rounded-2xl shadow-sm border border-gray-200 flex flex-col justify-between items-center text-center relative hover:shadow-md transition duration-300";
+                
+                // 前三名徽章
+                let badge = '';
+                if (index === 0 && team.score > 0) badge = '🥇';
+                else if (index === 1 && team.score > 0) badge = '🥈';
+                else if (index === 2 && team.score > 0) badge = '🥉';
+
+                card.innerHTML = `
+                    <button onclick="removeTeam(${team.id})" class="absolute top-2.5 right-2.5 text-gray-300 hover:text-red-500 transition text-sm">
+                        <i class="fas fa-xmark"></i>
+                    </button>
+                    <div class="mb-2">
+                        <span class="text-xl">${badge}</span>
+                        <h4 contenteditable="true" onblur="editTeamName(${team.id}, this)" class="font-bold text-gray-800 focus:outline-none border-b border-dashed border-transparent focus:border-gray-300 px-1 text-base inline-block">
+                            ${team.name}
+                        </h4>
+                    </div>
+                    <div class="text-4xl font-extrabold text-indigo-600 my-3 font-mono">
+                        ${team.score}
+                    </div>
+                    <div class="flex items-center space-x-1.5 w-full">
+                        <button onclick="changeScore(${team.id}, -1)" class="flex-1 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg font-bold text-sm border border-red-100 transition">-1</button>
+                        <button onclick="changeScore(${team.id}, 1)" class="flex-1 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg font-bold text-sm border border-emerald-100 transition">+1</button>
+                        <button onclick="changeScore(${team.id}, 5)" class="py-1.5 px-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg font-bold text-sm border border-indigo-100 transition">+5</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+
+        // ==================== 5. 骰子輪盤邏輯 ====================
+        let diceRolling = false;
+        
+        // 骰子點數對應角度
+        const diceAngles = {
+            1: { x: 0, y: 0 },
+            6: { x: 180, y: 0 },
+            2: { x: -90, y: 0 },
+            5: { x: 90, y: 0 },
+            3: { x: 0, y: -90 },
+            4: { x: 0, y: 90 }
+        };
+
+        function rollDice() {
+            if (diceRolling) return;
+            diceRolling = true;
+
+            const count = parseInt(document.getElementById('dice-count-select').value);
+            const stage = document.getElementById('dice-stage');
+            
+            // 動態生成骰子 HTML
+            stage.innerHTML = '';
+            let rollResults = [];
+            
+            for(let i=0; i<count; i++) {
+                const val = Math.floor(Math.random() * 6) + 1;
+                rollResults.push(val);
+
+                const scene = document.createElement('div');
+                scene.className = "scene";
+                scene.innerHTML = `
+                    <div class="cube" id="dice-${i}">
+                        <div class="face front"><span class="dot red"></span></div>
+                        <div class="face back"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                        <div class="face right"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                        <div class="face left"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                        <div class="face top"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                        <div class="face bottom"><span class="dot"></span><span class="dot"></span></div>
+                    </div>
+                `;
+                stage.appendChild(scene);
+            }
+
+            playTick();
+
+            // 骰子轉動動畫 (使用亂數角度高速翻轉)
+            setTimeout(() => {
+                for(let i=0; i<count; i++) {
+                    const cube = document.getElementById('dice-' + i);
+                    // 隨機選一個非結果的角度來達到滾動效果
+                    const rollX = Math.floor(Math.random() * 4) * 90 + 360 * 2;
+                    const rollY = Math.floor(Math.random() * 4) * 90 + 360 * 2;
+                    cube.style.transform = `rotateX(${rollX}deg) rotateY(${rollY}deg)`;
+                }
+            }, 50);
+
+            // 停下骰子
+            setTimeout(() => {
+                let sum = 0;
+                for(let i=0; i<count; i++) {
+                    const val = rollResults[i];
+                    sum += val;
+                    const cube = document.getElementById('dice-' + i);
+                    
+                    const angle = diceAngles[val];
+                    // 加上額外的旋轉圈數，看起來動感十足
+                    cube.style.transform = `rotateX(${angle.x + 720}deg) rotateY(${angle.y + 720}deg)`;
+                }
+                
+                document.getElementById('dice-result-sum').innerText = `點數：${rollResults.join(' + ')} = ${sum}`;
+                playDing();
+                diceRolling = false;
+            }, 1000);
+        }
+
+        // === 輪盤邏輯 ===
+        let wheelSpinning = false;
+        let currentWheelAngle = 0;
+
+        const wheelColors = ['#f87171', '#fb923c', '#fbbf24', '#34d399', '#60a5fa', '#818cf8', '#a78bfa', '#f472b6'];
+
+        function drawWheel() {
+            const canvas = document.getElementById('wheel-canvas');
+            const ctx = canvas.getContext('2d');
+            const itemsText = document.getElementById('wheel-items-input').value;
+            const items = parseNames(itemsText);
+
+            if (items.length === 0) return;
+
+            const numItems = items.length;
+            const arc = Math.PI * 2 / numItems;
+            const radius = 125;
+
+            ctx.clearRect(0, 0, 250, 250);
+
+            // 畫扇區
+            for (let i = 0; i < numItems; i++) {
+                const angle = i * arc;
+                ctx.fillStyle = wheelColors[i % wheelColors.length];
+                ctx.beginPath();
+                ctx.moveTo(125, 125);
+                ctx.arc(125, 125, radius - 5, angle, angle + arc);
+                ctx.lineTo(125, 125);
+                ctx.fill();
+
+                // 文字
+                ctx.save();
+                ctx.fillStyle = "white";
+                ctx.font = "bold 13px Inter, Noto Sans TC, sans-serif";
+                ctx.textAlign = "right";
+                ctx.translate(125, 125);
+                ctx.rotate(angle + arc / 2);
+                ctx.fillText(items[i], radius - 20, 5);
+                ctx.restore();
+            }
+
+            // 畫中心小圓圈
+            ctx.fillStyle = "#1f2937";
+            ctx.beginPath();
+            ctx.arc(125, 125, 15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "white";
+            ctx.beginPath();
+            ctx.arc(125, 125, 6, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        document.getElementById('wheel-items-input').addEventListener('input', drawWheel);
+
+        function spinWheel() {
+            if (wheelSpinning) return;
+            const itemsText = document.getElementById('wheel-items-input').value;
+            const items = parseNames(itemsText);
+
+            if (items.length === 0) {
+                alert('請先輸入輪盤選項！');
+                return;
+            }
+
+            wheelSpinning = true;
+            playTick();
+
+            const canvas = document.getElementById('wheel-canvas');
+            const numItems = items.length;
+            
+            // 隨機角度
+            const spins = 5; // 旋轉5圈
+            const itemArcDegrees = 360 / numItems;
+            const selectedItemIdx = Math.floor(Math.random() * numItems);
+            
+            // 指針停在 270 度（上方正中央）。所以需要計算旋轉到該項目的角度
+            // 轉盤順時針轉，指針是逆時針看
+            const targetAngle = 270 - (selectedItemIdx * itemArcDegrees) - (itemArcDegrees / 2);
+            const rollAngle = spins * 360 + targetAngle;
+            
+            canvas.style.transform = `rotate(${rollAngle}deg)`;
+
+            // 隨旋轉播放 tick 音效
+            let tickCount = 0;
+            const tickTimer = setInterval(() => {
+                playTick();
+                tickCount++;
+                if (tickCount >= 10) clearInterval(tickTimer);
+            }, 300);
+
+            setTimeout(() => {
+                clearInterval(tickTimer);
+                document.getElementById('wheel-result-text').innerText = `結果：${items[selectedItemIdx]}`;
+                playDing();
+                confetti({
+                    particleCount: 80,
+                    spread: 50,
+                    origin: { y: 0.6 }
+                });
+                wheelSpinning = false;
+            }, 4000); // 對應 css transition time 4s
+        }
+
+
+        // 初始化
+        window.onload = function() {
+            loadDefaultPicker(30);
+            loadDefaultGroup(30);
+            updateTimerUI();
+            renderScoreboard();
+            drawWheel();
+        }
+    </script>
+</body>
+</html>
