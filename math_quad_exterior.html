@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>四邊形外角和為 360° - 布萊克吳數學實驗室</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .draggable {
+            cursor: move;
+            fill: #4f46e5;
+            transition: r 0.1s ease;
+        }
+        .draggable:hover {
+            r: 10;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12 flex flex-col">
+
+    <!-- 導覽列 -->
+    <nav class="bg-white shadow-md p-4 mb-8">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="index.html" class="flex items-center space-x-2">
+                <i class="fas fa-shapes text-indigo-600 text-2xl"></i>
+                <span class="text-xl font-bold text-gray-800">布萊克吳數學實驗室</span>
+            </a>
+            <div class="text-sm text-gray-500">
+                幾何性質探索：四邊形外角和
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 flex-grow max-w-4xl">
+        <!-- 返回按鈕 -->
+        <a href="index1.html" class="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-bold mb-6 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i> 返回選單
+        </a>
+
+        <!-- 標題區 -->
+        <header class="mb-8">
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-2">四邊形外角和為 360°</h1>
+            <p class="text-gray-600">
+                拖曳四個頂點（可形成凸四邊形或凹四邊形），各邊的延伸線會標示出四個外角。點擊下方「縮小至一點」按鈕，觀察四個外角如何在收縮過程中完美拼合成一個 360° 的圓。
+            </p>
+        </header>
+
+        <!-- 畫布與編輯區 -->
+        <div class="bg-white rounded-2xl p-6 shadow-xl border border-gray-100 mb-8 flex flex-col items-center">
+            
+            <div class="w-full max-w-2xl bg-slate-50 rounded-xl overflow-hidden border border-gray-200 relative mb-6">
+                <!-- SVG 畫布 -->
+                <svg id="svg-canvas" class="w-full h-[400px]" viewBox="0 0 600 400" style="touch-action: none;">
+                    
+                    <!-- 縮小中心點標記 (重心) -->
+                    <circle id="centroid-point" cx="0" cy="0" r="4" fill="#6366f1" opacity="0"></circle>
+                    <text id="centroid-label" x="0" y="0" font-size="12px" fill="#4f46e5" opacity="0" text-anchor="middle">重心點</text>
+
+                    <!-- 四邊形面 -->
+                    <polygon id="quad-polygon" points="0,0 0,0 0,0 0,0" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"></polygon>
+
+                    <!-- 延伸外角線 -->
+                    <line id="ext-AB" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4,4"></line>
+                    <line id="ext-BC" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4,4"></line>
+                    <line id="ext-CD" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4,4"></line>
+                    <line id="ext-DA" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4,4"></line>
+
+                    <!-- 角度扇形 (四個角) -->
+                    <path id="sector-A" fill="#3b82f6" fill-opacity="0.8"></path>
+                    <path id="sector-B" fill="#ef4444" fill-opacity="0.8"></path>
+                    <path id="sector-C" fill="#10b981" fill-opacity="0.8"></path>
+                    <path id="sector-D" fill="#f59e0b" fill-opacity="0.8"></path>
+
+                    <!-- 四邊形主體線 -->
+                    <line id="side-AB" stroke="#475569" stroke-width="3"></line>
+                    <line id="side-BC" stroke="#475569" stroke-width="3"></line>
+                    <line id="side-CD" stroke="#475569" stroke-width="3"></line>
+                    <line id="side-DA" stroke="#475569" stroke-width="3"></line>
+
+                    <!-- 拖曳端點 -->
+                    <circle id="vertex-A" class="draggable" cx="200" cy="100" r="7"></circle>
+                    <circle id="vertex-B" class="draggable" cx="150" cy="280" r="7"></circle>
+                    <circle id="vertex-C" class="draggable" cx="420" cy="300" r="7"></circle>
+                    <circle id="vertex-D" class="draggable" cx="450" cy="120" r="7"></circle>
+                </svg>
+            </div>
+
+            <!-- 控制列 -->
+            <div class="flex space-x-4 mb-6">
+                <button id="btn-animate" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-xl shadow-lg transition-colors flex items-center space-x-2">
+                    <i class="fas fa-compress-alt"></i>
+                    <span>縮小至一點動畫</span>
+                </button>
+                <button id="btn-reset" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold px-6 py-3 rounded-xl transition-colors">
+                    重置大小
+                </button>
+            </div>
+
+            <!-- 計算結果 -->
+            <div class="text-center bg-gray-50 px-8 py-4 rounded-xl border border-gray-100 w-full max-w-md">
+                <div id="formula" class="text-2xl font-black text-slate-800">
+                    外角和恆等於 360°
+                </div>
+                <div id="formula-detail" class="text-sm text-slate-500 mt-1">
+                    0° + 0° + 0° + 0° = 360°
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="mt-auto py-8 text-center text-gray-400 text-sm">
+        <p>© 2026 布萊克吳數學實驗室 | 用動態圖形學習幾何性質</p>
+    </footer>
+
+    <script>
+        const svg = document.getElementById('svg-canvas');
+        const polygon = document.getElementById('quad-polygon');
+        const btnAnimate = document.getElementById('btn-animate');
+        const btnReset = document.getElementById('btn-reset');
+        
+        const vertexA = document.getElementById('vertex-A');
+        const vertexB = document.getElementById('vertex-B');
+        const vertexC = document.getElementById('vertex-C');
+        const vertexD = document.getElementById('vertex-D');
+
+        const sectorA = document.getElementById('sector-A');
+        const sectorB = document.getElementById('sector-B');
+        const sectorC = document.getElementById('sector-C');
+        const sectorD = document.getElementById('sector-D');
+
+        const sideAB = document.getElementById('side-AB');
+        const sideBC = document.getElementById('side-BC');
+        const sideCD = document.getElementById('side-CD');
+        const sideDA = document.getElementById('side-DA');
+
+        const extAB = document.getElementById('ext-AB');
+        const extBC = document.getElementById('ext-BC');
+        const extCD = document.getElementById('ext-CD');
+        const extDA = document.getElementById('ext-DA');
+
+        const centroidPoint = document.getElementById('centroid-point');
+        const centroidLabel = document.getElementById('centroid-label');
+
+        const formulaDetail = document.getElementById('formula-detail');
+
+        // 原本點的坐標 (保存用)
+        let originalPts = {
+            A: { x: 200, y: 100 },
+            B: { x: 150, y: 280 },
+            C: { x: 420, y: 300 },
+            D: { x: 450, y: 120 }
+        };
+
+        // 當前繪製點的坐標
+        let pts = {
+            A: { x: 200, y: 100 },
+            B: { x: 150, y: 280 },
+            C: { x: 420, y: 300 },
+            D: { x: 450, y: 120 }
+        };
+
+        let scale = 1.0;
+        let isAnimating = false;
+        let animFrameId = null;
+        let activeVertex = null;
+
+        // 計算向量夾角
+        function getAngle(p1, p2, p3) {
+            const v1 = { x: p1.x - p2.x, y: p1.y - p2.y };
+            const v2 = { x: p3.x - p2.x, y: p3.y - p2.y };
+            const dot = v1.x * v2.x + v1.y * v2.y;
+            const det = v1.x * v2.y - v1.y * v2.x;
+            return Math.abs(Math.atan2(det, dot));
+        }
+
+        // 取得絕對方向角
+        function getDirectionAngle(fromPt, toPt) {
+            return Math.atan2(toPt.y - fromPt.y, toPt.x - fromPt.x);
+        }
+
+        // 描述 SVG 扇形
+        function describeSector(cx, cy, r, startAngle, endAngle) {
+            const x1 = cx + r * Math.cos(startAngle);
+            const y1 = cy + r * Math.sin(startAngle);
+            const x2 = cx + r * Math.cos(endAngle);
+            const y2 = cy + r * Math.sin(endAngle);
+            const diff = endAngle - startAngle;
+            const largeArcFlag = Math.abs(diff) > Math.PI ? 1 : 0;
+            const sweepFlag = diff > 0 ? 1 : 0;
+            return `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArcFlag} ${sweepFlag} ${x2} ${y2} Z`;
+        }
+
+        // 繪製整套圖案
+        function drawScene() {
+            if (!isAnimating) {
+                for (let k in pts) {
+                    pts[k].x = Math.max(20, Math.min(580, pts[k].x));
+                    pts[k].y = Math.max(20, Math.min(330, pts[k].y));
+                }
+            }
+
+            // 更新端點位置
+            if (isAnimating) {
+                vertexA.setAttribute('opacity', '0');
+                vertexB.setAttribute('opacity', '0');
+                vertexC.setAttribute('opacity', '0');
+                vertexD.setAttribute('opacity', '0');
+            } else {
+                vertexA.setAttribute('cx', pts.A.x); vertexA.setAttribute('cy', pts.A.y); vertexA.setAttribute('opacity', '1');
+                vertexB.setAttribute('cx', pts.B.x); vertexB.setAttribute('cy', pts.B.y); vertexB.setAttribute('opacity', '1');
+                vertexC.setAttribute('cx', pts.C.x); vertexC.setAttribute('cy', pts.C.y); vertexC.setAttribute('opacity', '1');
+                vertexD.setAttribute('cx', pts.D.x); vertexD.setAttribute('cy', pts.D.y); vertexD.setAttribute('opacity', '1');
+            }
+
+            // 更新多邊形頂點
+            polygon.setAttribute('points', `${pts.A.x},${pts.A.y} ${pts.B.x},${pts.B.y} ${pts.C.x},${pts.C.y} ${pts.D.x},${pts.D.y}`);
+
+            // 更新四邊線
+            sideAB.setAttribute('x1', pts.A.x); sideAB.setAttribute('y1', pts.A.y); sideAB.setAttribute('x2', pts.B.x); sideAB.setAttribute('y2', pts.B.y);
+            sideBC.setAttribute('x1', pts.B.x); sideBC.setAttribute('y1', pts.B.y); sideBC.setAttribute('x2', pts.C.x); sideBC.setAttribute('y2', pts.C.y);
+            sideCD.setAttribute('x1', pts.C.x); sideCD.setAttribute('y1', pts.C.y); sideCD.setAttribute('x2', pts.D.x); sideCD.setAttribute('y2', pts.D.y);
+            sideDA.setAttribute('x1', pts.D.x); sideDA.setAttribute('y1', pts.D.y); sideDA.setAttribute('x2', pts.A.x); sideDA.setAttribute('y2', pts.A.y);
+
+            // 邊向量方向角
+            const dirAB = getDirectionAngle(pts.A, pts.B);
+            const dirBC = getDirectionAngle(pts.B, pts.C);
+            const dirCD = getDirectionAngle(pts.C, pts.D);
+            const dirDA = getDirectionAngle(pts.D, pts.A);
+
+            // 繪製延伸線 (延伸長度為 80px)
+            const extLen = 80;
+            extAB.setAttribute('x1', pts.B.x); extAB.setAttribute('y1', pts.B.y);
+            extAB.setAttribute('x2', pts.B.x + extLen * Math.cos(dirAB));
+            extAB.setAttribute('y2', pts.B.y + extLen * Math.sin(dirAB));
+
+            extBC.setAttribute('x1', pts.C.x); extBC.setAttribute('y1', pts.C.y);
+            extBC.setAttribute('x2', pts.C.x + extLen * Math.cos(dirBC));
+            extBC.setAttribute('y2', pts.C.y + extLen * Math.sin(dirBC));
+
+            extCD.setAttribute('x1', pts.D.x); extCD.setAttribute('y1', pts.D.y);
+            extCD.setAttribute('x2', pts.D.x + extLen * Math.cos(dirCD));
+            extCD.setAttribute('y2', pts.D.y + extLen * Math.sin(dirCD));
+
+            extDA.setAttribute('x1', pts.A.x); extDA.setAttribute('y1', pts.A.y);
+            extDA.setAttribute('x2', pts.A.x + extLen * Math.cos(dirDA));
+            extDA.setAttribute('y2', pts.A.y + extLen * Math.sin(dirDA));
+
+            // 繪製外角扇形 (外心半徑 r=40)
+            const r = 40;
+
+            // A 點外角：從 DA 延長線 (dirDA) 到 AB 邊
+            let startA = dirAB;
+            let endA = dirDA;
+            if (endA < startA) endA += 2 * Math.PI;
+            if (endA - startA > Math.PI) {
+                sectorA.setAttribute('d', describeSector(pts.A.x, pts.A.y, r, endA, startA + 2*Math.PI));
+            } else {
+                sectorA.setAttribute('d', describeSector(pts.A.x, pts.A.y, r, startA, endA));
+            }
+
+            // B 點外角：從 AB 延長線 (dirAB) 到 BC 邊
+            let startB = dirBC;
+            let endB = dirAB;
+            if (endB < startB) endB += 2 * Math.PI;
+            if (endB - startB > Math.PI) {
+                sectorB.setAttribute('d', describeSector(pts.B.x, pts.B.y, r, endB, startB + 2*Math.PI));
+            } else {
+                sectorB.setAttribute('d', describeSector(pts.B.x, pts.B.y, r, startB, endB));
+            }
+
+            // C 點外角：從 BC 延長線 (dirBC) 到 CD 邊
+            let startC = dirCD;
+            let endC = dirBC;
+            if (endC < startC) endC += 2 * Math.PI;
+            if (endC - startC > Math.PI) {
+                sectorC.setAttribute('d', describeSector(pts.C.x, pts.C.y, r, endC, startC + 2*Math.PI));
+            } else {
+                sectorC.setAttribute('d', describeSector(pts.C.x, pts.C.y, r, startC, endC));
+            }
+
+            // D 點外角：從 CD 延長線 (dirCD) 到 DA 邊
+            let startD = dirDA;
+            let endD = dirCD;
+            if (endD < startD) endD += 2 * Math.PI;
+            if (endD - startD > Math.PI) {
+                sectorD.setAttribute('d', describeSector(pts.D.x, pts.D.y, r, endD, startD + 2*Math.PI));
+            } else {
+                sectorD.setAttribute('d', describeSector(pts.D.x, pts.D.y, r, startD, endD));
+            }
+
+            // 計算外角值 (藉由內角來做)
+            // 三角剖分計算內角
+            const intA = getAngle(pts.B, pts.A, pts.D);
+            const intB = getAngle(pts.A, pts.B, pts.C);
+            const intC = getAngle(pts.B, pts.C, pts.D);
+            const intD = 2 * Math.PI - intA - intB - intC; // 內角和 360 度 (2*PI)
+
+            const degA = Math.round((Math.PI - intA) * 180 / Math.PI);
+            const degB = Math.round((Math.PI - intB) * 180 / Math.PI);
+            const degC = Math.round((Math.PI - intC) * 180 / Math.PI);
+            const degD = 360 - degA - degB - degC; // 確保外角和恰為 360°
+
+            formulaDetail.textContent = `外角A = ${degA}°，外角B = ${degB}°，外角C = ${degC}°，外角D = ${degD}°，加總 = 360°`;
+        }
+
+        // 動畫邏輯
+        function startShrinkAnimation() {
+            if (isAnimating) return;
+            isAnimating = true;
+            btnAnimate.disabled = true;
+
+            // 備份
+            originalPts.A = { ...pts.A };
+            originalPts.B = { ...pts.B };
+            originalPts.C = { ...pts.C };
+            originalPts.D = { ...pts.D };
+
+            // 重心 G (四個點的平均)
+            const gx = (pts.A.x + pts.B.x + pts.C.x + pts.D.x) / 4;
+            const gy = (pts.A.y + pts.B.y + pts.C.y + pts.D.y) / 4;
+
+            centroidPoint.setAttribute('cx', gx);
+            centroidPoint.setAttribute('cy', gy);
+            centroidPoint.setAttribute('opacity', '1');
+            centroidLabel.setAttribute('x', gx);
+            centroidLabel.setAttribute('y', gy - 15);
+            centroidLabel.setAttribute('opacity', '1');
+
+            let startTime = null;
+            const duration = 2000;
+
+            function step(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const elapsed = timestamp - startTime;
+                const progress = Math.min(elapsed / duration, 1.0);
+                
+                const ease = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+                scale = 1.0 - ease * 0.99; // 縮小到 1%
+
+                pts.A.x = gx + scale * (originalPts.A.x - gx);
+                pts.A.y = gy + scale * (originalPts.A.y - gy);
+                pts.B.x = gx + scale * (originalPts.B.x - gx);
+                pts.B.y = gy + scale * (originalPts.B.y - gy);
+                pts.C.x = gx + scale * (originalPts.C.x - gx);
+                pts.C.y = gy + scale * (originalPts.C.y - gy);
+                pts.D.x = gx + scale * (originalPts.D.x - gx);
+                pts.D.y = gy + scale * (originalPts.D.y - gy);
+
+                // 透明度漸變
+                polygon.setAttribute('opacity', 1 - ease * 0.85);
+                sideAB.setAttribute('opacity', 1 - ease * 0.85);
+                sideBC.setAttribute('opacity', 1 - ease * 0.85);
+                sideCD.setAttribute('opacity', 1 - ease * 0.85);
+                sideDA.setAttribute('opacity', 1 - ease * 0.85);
+                extAB.setAttribute('opacity', 1 - ease * 0.5);
+                extBC.setAttribute('opacity', 1 - ease * 0.5);
+                extCD.setAttribute('opacity', 1 - ease * 0.5);
+                extDA.setAttribute('opacity', 1 - ease * 0.5);
+
+                drawScene();
+
+                if (progress < 1.0) {
+                    animFrameId = requestAnimationFrame(step);
+                } else {
+                    formulaDetail.innerHTML = `收縮完成！四個外角在重心重合為一完整圓周 <span class="font-extrabold text-indigo-600">360°</span>！`;
+                }
+            }
+
+            animFrameId = requestAnimationFrame(step);
+        }
+
+        function resetScene() {
+            if (animFrameId) cancelAnimationFrame(animFrameId);
+            isAnimating = false;
+            btnAnimate.disabled = false;
+            scale = 1.0;
+
+            pts = { ...originalPts };
+
+            polygon.setAttribute('opacity', '1');
+            sideAB.setAttribute('opacity', '1');
+            sideBC.setAttribute('opacity', '1');
+            sideCD.setAttribute('opacity', '1');
+            sideDA.setAttribute('opacity', '1');
+            extAB.setAttribute('opacity', '1');
+            extBC.setAttribute('opacity', '1');
+            extCD.setAttribute('opacity', '1');
+            extDA.setAttribute('opacity', '1');
+
+            centroidPoint.setAttribute('opacity', '0');
+            centroidLabel.setAttribute('opacity', '0');
+
+            drawScene();
+        }
+
+        // 拖曳處理
+        function getMousePos(evt) {
+            const rect = svg.getBoundingClientRect();
+            const scaleX = 600 / rect.width;
+            const scaleY = 400 / rect.height;
+            if (evt.touches) {
+                return {
+                    x: (evt.touches[0].clientX - rect.left) * scaleX,
+                    y: (evt.touches[0].clientY - rect.top) * scaleY
+                };
+            }
+            return {
+                x: (evt.clientX - rect.left) * scaleX,
+                y: (evt.clientY - rect.top) * scaleY
+            };
+        }
+
+        function onStart(evt) {
+            if (isAnimating) return;
+            const pos = getMousePos(evt);
+            const threshold = 15;
+            for (let k in pts) {
+                const dist = Math.hypot(pts[k].x - pos.x, pts[k].y - pos.y);
+                if (dist < threshold) {
+                    activeVertex = k;
+                    evt.preventDefault();
+                    break;
+                }
+            }
+        }
+
+        function onMove(evt) {
+            if (!activeVertex || isAnimating) return;
+            const pos = getMousePos(evt);
+            pts[activeVertex].x = pos.x;
+            pts[activeVertex].y = pos.y;
+            drawScene();
+            evt.preventDefault();
+        }
+
+        function onEnd() {
+            activeVertex = null;
+        }
+
+        // 綁定事件
+        svg.addEventListener('mousedown', onStart);
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onEnd);
+
+        svg.addEventListener('touchstart', onStart, { passive: false });
+        window.addEventListener('touchmove', onMove, { passive: false });
+        window.addEventListener('touchend', onEnd);
+
+        btnAnimate.addEventListener('click', startShrinkAnimation);
+        btnReset.addEventListener('click', resetScene);
+
+        // 初始繪製
+        drawScene();
+    </script>
+</body>
+</html>

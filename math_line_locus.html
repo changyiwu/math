@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>直線軌跡生成器 - 布萊克吳數學實驗室</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .draggable {
+            cursor: move;
+            transition: r 0.1s ease;
+        }
+        .draggable:hover {
+            r: 9;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12 flex flex-col">
+
+    <!-- 導覽列 -->
+    <nav class="bg-white shadow-md p-4 mb-8">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="index.html" class="flex items-center space-x-2">
+                <i class="fas fa-shapes text-indigo-600 text-2xl"></i>
+                <span class="text-xl font-bold text-gray-800">布萊克吳數學實驗室</span>
+            </a>
+            <div class="text-sm text-gray-500">
+                線型函數：直線軌跡生成器 (兩點決定一直線)
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 flex-grow max-w-4xl">
+        <!-- 返回按鈕 -->
+        <a href="index4.html" class="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-bold mb-6 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i> 返回選單
+        </a>
+
+        <!-- 標題區 -->
+        <header class="mb-8">
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-2">直線軌跡生成器</h1>
+            <p class="text-gray-600">
+                在座標平面上，<b>相異兩點決定唯一的一條直線</b>。拖曳藍色的 $A$ 點與紅色的 $B$ 點（會自動吸附在網格交點上），觀察右側動態計算的斜率三角形與直線方程式。
+            </p>
+        </header>
+
+        <!-- 畫布與編輯區 -->
+        <div class="bg-white rounded-2xl p-6 shadow-xl border border-gray-100 mb-8 flex flex-col items-center">
+            
+            <div class="w-full max-w-2xl bg-slate-900 rounded-xl overflow-hidden border border-gray-800 relative mb-6">
+                <!-- SVG 畫布 -->
+                <svg id="svg-canvas" class="w-full h-[380px]" viewBox="0 0 500 380" style="touch-action: none;">
+                    <!-- 網格與座標軸 -->
+                    <defs>
+                        <pattern id="smallGrid" width="15" height="15" patternUnits="userSpaceOnUse">
+                            <path d="M 15 0 L 0 0 0 15" fill="none" stroke="#1e293b" stroke-width="0.5" />
+                        </pattern>
+                        <pattern id="mainGrid" width="30" height="30" patternUnits="userSpaceOnUse">
+                            <rect width="30" height="30" fill="url(#smallGrid)" />
+                            <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#334155" stroke-width="1" />
+                        </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#mainGrid)" />
+
+                    <!-- 座標軸 X, Y (中心原點為 (250, 190)，1單位 = 30px) -->
+                    <line x1="0" y1="190" x2="500" y2="190" stroke="#64748b" stroke-width="2"></line>
+                    <line x1="250" y1="0" x2="250" y2="380" stroke="#64748b" stroke-width="2"></line>
+
+                    <!-- 斜率輔助直角三角形 (跑動與上升) -->
+                    <!-- 水平變動線 (藍) -->
+                    <line id="run-line" stroke="#3b82f6" stroke-width="2" stroke-dasharray="3,3"></line>
+                    <!-- 垂直變動線 (橘) -->
+                    <line id="rise-line" stroke="#f97316" stroke-width="2" stroke-dasharray="3,3"></line>
+
+                    <!-- 穿過 A, B 的直線 -->
+                    <line id="linear-line" stroke="#6366f1" stroke-width="3" stroke-linecap="round"></line>
+
+                    <!-- 端點 A (藍) -->
+                    <circle id="point-A" class="draggable" cx="190" cy="130" r="7" fill="#2563eb" stroke="white" stroke-width="1.5"></circle>
+                    <text id="label-A" font-weight="bold" font-size="12px" fill="#60a5fa"></text>
+
+                    <!-- 端點 B (紅) -->
+                    <circle id="point-B" class="draggable" cx="310" cy="70" r="7" fill="#ef4444" stroke="white" stroke-width="1.5"></circle>
+                    <text id="label-B" font-weight="bold" font-size="12px" fill="#f87171"></text>
+
+                    <!-- 水平/垂直變動量文字標籤 -->
+                    <text id="run-text" font-size="11px" fill="#3b82f6" text-anchor="middle" font-weight="bold"></text>
+                    <text id="rise-text" font-size="11px" fill="#f97316" text-anchor="middle" font-weight="bold"></text>
+
+                    <!-- 軸名稱 -->
+                    <polygon points="495,186 500,190 495,194" fill="#64748b"></polygon>
+                    <polygon points="246,5 250,0 254,5" fill="#64748b"></polygon>
+                    <text x="485" y="210" font-size="12px" fill="#64748b">x</text>
+                    <text x="265" y="15" font-size="12px" fill="#64748b">y</text>
+                </svg>
+            </div>
+
+            <!-- 計算結果與方程式面板 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl bg-gray-50 p-6 rounded-xl border border-gray-100">
+                <!-- 方程式 -->
+                <div class="flex flex-col justify-center border-r border-gray-200 last:border-0 pr-6">
+                    <span class="text-xs text-gray-400 font-bold">直線方程式</span>
+                    <span id="formula-text" class="text-2xl font-black text-indigo-600 mt-1">y = ax + b</span>
+                </div>
+                <!-- 數據計算 -->
+                <div class="flex flex-col justify-center pl-6 text-sm text-gray-700 space-y-1">
+                    <div><b>A 點座標</b>：<span id="coord-A-text">(-2, 2)</span></div>
+                    <div><b>B 點座標</b>：<span id="coord-B-text">(2, 4)</span></div>
+                    <div class="pt-1 text-xs text-gray-400">
+                        斜率算式：$a = \frac{y_2 - y_1}{x_2 - x_1} = \frac{\Delta y}{\Delta x}$
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="mt-auto py-8 text-center text-gray-400 text-sm">
+        <p>© 2026 布萊克吳數學實驗室 | 直觀探索一次函數</p>
+    </footer>
+
+    <script>
+        const svg = document.getElementById('svg-canvas');
+        const pA = document.getElementById('point-A');
+        const pB = document.getElementById('point-B');
+        const lA = document.getElementById('label-A');
+        const lB = document.getElementById('label-B');
+
+        const linearLine = document.getElementById('linear-line');
+        const runLine = document.getElementById('run-line');
+        const riseLine = document.getElementById('rise-line');
+        
+        const runText = document.getElementById('run-text');
+        const riseText = document.getElementById('rise-text');
+
+        const formulaText = document.getElementById('formula-text');
+        const coordAText = document.getElementById('coord-A-text');
+        const coordBText = document.getElementById('coord-B-text');
+
+        const originX = 250;
+        const originY = 190;
+        const scale = 30; // 1單位 = 30px
+
+        // 點的數值坐標 (格點)
+        let pts = {
+            A: { x: -2, y: 2 },
+            B: { x: 2, y: 4 }
+        };
+
+        let activeVertex = null;
+
+        function drawScene() {
+            // 1. 將格點座標轉為 SVG 像素座標並更新端點位置
+            const pxA = originX + pts.A.x * scale;
+            const pyA = originY - pts.A.y * scale;
+            const pxB = originX + pts.B.x * scale;
+            const pyB = originY - pts.B.y * scale;
+
+            pA.setAttribute('cx', pxA); pA.setAttribute('cy', pyA);
+            pB.setAttribute('cx', pxB); pB.setAttribute('cy', pyB);
+
+            // 更新端點標籤
+            lA.setAttribute('x', pxA + 10); lA.setAttribute('y', pyA - 10);
+            lA.textContent = `A (${pts.A.x}, ${pts.A.y})`;
+            lB.setAttribute('x', pxB + 10); lB.setAttribute('y', pyB - 10);
+            lB.textContent = `B (${pts.B.x}, ${pts.B.y})`;
+
+            coordAText.textContent = `(${pts.A.x}, ${pts.A.y})`;
+            coordBText.textContent = `(${pts.B.x}, ${pts.B.y})`;
+
+            // 2. 繪製直線 (穿過 AB 並向兩側無限延伸)
+            const dx = pts.B.x - pts.A.x;
+            const dy = pts.B.y - pts.A.y;
+
+            if (dx === 0 && dy === 0) {
+                // 兩點重合退化為點
+                linearLine.setAttribute('x1', pxA);
+                linearLine.setAttribute('y1', pyA);
+                linearLine.setAttribute('x2', pxB);
+                linearLine.setAttribute('y2', pyB);
+                formulaText.innerHTML = "兩點不能重合";
+                runLine.setAttribute('x1', 0); runLine.setAttribute('y1', 0); runLine.setAttribute('x2', 0); runLine.setAttribute('y2', 0);
+                riseLine.setAttribute('x1', 0); riseLine.setAttribute('y1', 0); riseLine.setAttribute('x2', 0); riseLine.setAttribute('y2', 0);
+                runText.textContent = "";
+                riseText.textContent = "";
+                return;
+            }
+
+            // 延伸繪製直線
+            const extLen = 1000;
+            const d = Math.hypot(dx, dy);
+            const ux = dx / d;
+            const uy = dy / d;
+
+            linearLine.setAttribute('x1', pxA - extLen * ux);
+            linearLine.setAttribute('y1', pyA + extLen * uy); // 畫布 Y 軸相反，uy 要變號以維持正確幾何
+            linearLine.setAttribute('x2', pxB + extLen * ux);
+            linearLine.setAttribute('y2', pyB - extLen * uy);
+
+            // 3. 繪製斜率三角形
+            // 水平變動線：從 A(pxA, pyA) 到 (pxB, pyA)
+            runLine.setAttribute('x1', pxA);
+            runLine.setAttribute('y1', pyA);
+            runLine.setAttribute('x2', pxB);
+            runLine.setAttribute('y2', pyA);
+
+            // 垂直變動線：從 (pxB, pyA) 到 B(pxB, pyB)
+            riseLine.setAttribute('x1', pxB);
+            runLine.setAttribute('y1', pyA); // 同步 y 以維持直角
+            riseLine.setAttribute('x2', pxB);
+            riseLine.setAttribute('y2', pyB);
+
+            // 計算變動量
+            const runVal = pts.B.x - pts.A.x;
+            const riseVal = pts.B.y - pts.A.y;
+
+            runText.setAttribute('x', (pxA + pxB) / 2);
+            runText.setAttribute('y', pyA + (runVal >= 0 ? 15 : -8));
+            runText.textContent = `Δx = ${runVal}`;
+
+            riseText.setAttribute('x', pxB + (runVal >= 0 ? 25 : -25));
+            riseText.setAttribute('y', (pyA + pyB) / 2);
+            riseText.textContent = `Δy = ${riseVal}`;
+
+            // 4. 計算直線方程式 y = ax + b
+            if (dx === 0) {
+                // 垂直線：x = x1
+                formulaText.innerHTML = `x = ${pts.A.x}`;
+            } else {
+                const a = dy / dx; // 斜率
+                const b = pts.A.y - a * pts.A.x; // 截距
+                
+                // 格式化輸出
+                const aStr = a === 0 ? '' : (a === 1 ? 'x' : (a === -1 ? '-x' : `${a.toFixed(1)}x`));
+                let bStr = '';
+                if (b !== 0) {
+                    bStr = b > 0 ? ` + ${b.toFixed(1)}` : ` - ${Math.abs(b).toFixed(1)}`;
+                }
+                
+                if (a === 0) {
+                    // 水平線 y = b
+                    formulaText.innerHTML = `y = ${b.toFixed(1)}`;
+                } else {
+                    formulaText.innerHTML = `y = ${aStr}${bStr}`;
+                }
+            }
+        }
+
+        // 拖曳處理
+        function getMousePos(evt) {
+            const rect = svg.getBoundingClientRect();
+            const scaleX = 500 / rect.width;
+            const scaleY = 380 / rect.height;
+            if (evt.touches) {
+                return {
+                    x: (evt.touches[0].clientX - rect.left) * scaleX,
+                    y: (evt.touches[0].clientY - rect.top) * scaleY
+                };
+            }
+            return {
+                x: (evt.clientX - rect.left) * scaleX,
+                y: (evt.clientY - rect.top) * scaleY
+            };
+        }
+
+        function onStart(evt) {
+            const pos = getMousePos(evt);
+            const threshold = 15;
+            
+            // 轉換為像素點的 A, B 位置做距離判定
+            const pxA = originX + pts.A.x * scale;
+            const pyA = originY - pts.A.y * scale;
+            const pxB = originX + pts.B.x * scale;
+            const pyB = originY - pts.B.y * scale;
+
+            if (Math.hypot(pxA - pos.x, pyA - pos.y) < threshold) {
+                activeVertex = 'A';
+                evt.preventDefault();
+            } else if (Math.hypot(pxB - pos.x, pyB - pos.y) < threshold) {
+                activeVertex = 'B';
+                evt.preventDefault();
+            }
+        }
+
+        function onMove(evt) {
+            if (!activeVertex) return;
+            const pos = getMousePos(evt);
+            
+            // 轉為數學座標，並吸附到最接近的「整數格點」上
+            const rawX = (pos.x - originX) / scale;
+            const rawY = (originY - pos.y) / scale;
+
+            // 限制在網格 [-8, 8] x [-6, 6] 內
+            let snapX = Math.round(rawX);
+            let snapY = Math.round(rawY);
+
+            snapX = Math.max(-8, Math.min(8, snapX));
+            snapY = Math.max(-5, Math.min(5, snapY));
+
+            pts[activeVertex].x = snapX;
+            pts[activeVertex].y = snapY;
+
+            drawScene();
+            evt.preventDefault();
+        }
+
+        function onEnd() {
+            activeVertex = null;
+        }
+
+        // 綁定事件
+        svg.addEventListener('mousedown', onStart);
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onEnd);
+
+        svg.addEventListener('touchstart', onStart, { passive: false });
+        window.addEventListener('touchmove', onMove, { passive: false });
+        window.addEventListener('touchend', onEnd);
+
+        // 重置按鈕
+        btnReset.addEventListener('click', () => {
+            pts = {
+                A: { x: -2, y: 2 },
+                B: { x: 2, y: 4 }
+            };
+            drawScene();
+        });
+
+        // 初始繪製
+        drawScene();
+    </script>
+</body>
+</html>

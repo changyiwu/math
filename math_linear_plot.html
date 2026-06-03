@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>線性函數繪圖工具 - 布萊克吳數學實驗室</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f2f5;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12 flex flex-col">
+
+    <!-- 導覽列 -->
+    <nav class="bg-white shadow-md p-4 mb-8">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="index.html" class="flex items-center space-x-2">
+                <i class="fas fa-shapes text-indigo-600 text-2xl"></i>
+                <span class="text-xl font-bold text-gray-800">布萊克吳數學實驗室</span>
+            </a>
+            <div class="text-sm text-gray-500">
+                線性函數：繪圖工具 y = ax + b
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 flex-grow max-w-4xl">
+        <!-- 返回按鈕 -->
+        <a href="index4.html" class="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-bold mb-6 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i> 返回選單
+        </a>
+
+        <!-- 標題區 -->
+        <header class="mb-8">
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-2">線性函數繪圖工具</h1>
+            <p class="text-gray-600">
+                線性函數（常稱為一次函數或常數函數）的形式為 $y = ax + b$，其中 $a$ 代表<b>斜率</b>（陡峭度與方向），$b$ 代表 <b>y 軸截距</b>（與 y 軸的交點）。
+            </p>
+        </header>
+
+        <!-- 主體內容 -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8 mb-8">
+            
+            <!-- 左側滑桿 (5 cols) -->
+            <div class="md:col-span-5 flex flex-col space-y-6">
+                <!-- 滑桿 a (斜率) -->
+                <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-sm font-bold text-gray-700">斜率 a (陡峭度與方向)</span>
+                        <span id="valA-text" class="text-lg font-black text-indigo-600">1.0</span>
+                    </div>
+                    <input type="range" id="sliderA" min="-4.0" max="4.0" step="0.2" value="1.0" class="w-full h-2 bg-indigo-100 rounded-lg appearance-none cursor-pointer">
+                    <div class="flex justify-between text-xs text-gray-400 mt-1">
+                        <span>-4.0 (往右下斜)</span>
+                        <span>0.0 (水平)</span>
+                        <span>4.0 (往右上斜)</span>
+                    </div>
+                </div>
+
+                <!-- 滑桿 b (y軸截距) -->
+                <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-sm font-bold text-gray-700">y 軸截距 b (上下移位)</span>
+                        <span id="valB-text" class="text-lg font-black text-blue-600">0.0</span>
+                    </div>
+                    <input type="range" id="sliderB" min="-5.0" max="5.0" step="0.2" value="0.0" class="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer">
+                    <div class="flex justify-between text-xs text-gray-400 mt-1">
+                        <span>向下 -5.0</span>
+                        <span>0.0</span>
+                        <span>向上 5.0</span>
+                    </div>
+                </div>
+
+                <!-- 重置 -->
+                <button id="btn-reset" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 rounded-xl transition-colors">
+                    重置為 y = x
+                </button>
+            </div>
+
+            <!-- 右側繪圖 (7 cols) -->
+            <div class="md:col-span-7 bg-white rounded-2xl p-6 shadow-xl border border-gray-100 flex flex-col items-center">
+                
+                <div class="w-full bg-slate-900 rounded-xl overflow-hidden border border-gray-800 relative mb-4">
+                    <svg id="svg-canvas" class="w-full h-[350px]" viewBox="0 0 400 350">
+                        <!-- 網格與座標軸 -->
+                        <defs>
+                            <pattern id="smallGrid" width="15" height="15" patternUnits="userSpaceOnUse">
+                                <path d="M 15 0 L 0 0 0 15" fill="none" stroke="#1e293b" stroke-width="0.5" />
+                            </pattern>
+                            <pattern id="mainGrid" width="30" height="30" patternUnits="userSpaceOnUse">
+                                <rect width="30" height="30" fill="url(#smallGrid)" />
+                                <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#334155" stroke-width="1" />
+                            </pattern>
+                        </defs>
+                        <rect width="100%" height="100%" fill="url(#mainGrid)" />
+
+                        <!-- 座標軸 X, Y (中心原點為 (200, 175)，1單位 = 30px) -->
+                        <line x1="0" y1="175" x2="400" y2="175" stroke="#64748b" stroke-width="2"></line>
+                        <line x1="200" y1="0" x2="200" y2="350" stroke="#64748b" stroke-width="2"></line>
+
+                        <!-- 斜率三角形 (x + 1 單位，y + a 單位) -->
+                        <!-- 水平線 (藍) -->
+                        <line id="slope-run" stroke="#2563eb" stroke-width="2" stroke-dasharray="3,3"></line>
+                        <!-- 垂直線 (橘) -->
+                        <line id="slope-rise" stroke="#f97316" stroke-width="2" stroke-dasharray="3,3"></line>
+
+                        <!-- 直線 -->
+                        <line id="linear-line" stroke="#6366f1" stroke-width="3" stroke-linecap="round"></line>
+
+                        <!-- 與 Y 軸交點點 (0, b) -->
+                        <circle id="point-y-intersect" cx="0" cy="0" r="4" fill="#3b82f6" stroke="white" stroke-width="1"></circle>
+
+                        <!-- 與 X 軸交點點 (-b/a, 0) -->
+                        <circle id="point-x-intersect" cx="0" cy="0" r="4" fill="#10b981" stroke="white" stroke-width="1" opacity="0"></circle>
+
+                        <!-- 軸名稱 -->
+                        <polygon points="395,171 400,175 395,179" fill="#64748b"></polygon>
+                        <polygon points="196,5 200,0 204,5" fill="#64748b"></polygon>
+                        <text x="390" y="195" font-size="12px" fill="#64748b">x</text>
+                        <text x="215" y="15" font-size="12px" fill="#64748b">y</text>
+                    </svg>
+                </div>
+
+                <!-- 公式顯示與解說 -->
+                <div class="w-full text-center space-y-2">
+                    <div id="formula-display" class="text-2xl font-black text-indigo-600">
+                        y = 1.0x + 0.0
+                    </div>
+                    <div id="explanation-display" class="text-xs text-gray-500 leading-relaxed min-h-[50px]">
+                        與 y 軸交點為 (0, 0)。
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <footer class="mt-auto py-8 text-center text-gray-400 text-sm">
+        <p>© 2026 布萊克吳數學實驗室 | 探索一次線性函數性質</p>
+    </footer>
+
+    <script>
+        const sliderA = document.getElementById('sliderA');
+        const sliderB = document.getElementById('sliderB');
+        const valAText = document.getElementById('valA-text');
+        const valBText = document.getElementById('valB-text');
+        const btnReset = document.getElementById('btn-reset');
+
+        const linearLine = document.getElementById('linear-line');
+        const slopeRun = document.getElementById('slope-run');
+        const slopeRise = document.getElementById('slope-rise');
+
+        const pYInt = document.getElementById('point-y-intersect');
+        const pXInt = document.getElementById('point-x-intersect');
+
+        const formulaDisplay = document.getElementById('formula-display');
+        const explanationDisplay = document.getElementById('explanation-display');
+
+        const originX = 200;
+        const originY = 175;
+        const scale = 30; // 1單位 = 30px
+
+        function updateScene() {
+            const a = parseFloat(sliderA.value);
+            const b = parseFloat(sliderB.value);
+
+            valAText.textContent = a.toFixed(1);
+            valBText.textContent = b.toFixed(1);
+
+            // 1. 繪製直線 (y = ax + b)
+            // 我們取出 x 軸兩端 x=-8 與 x=8 的像素點並連線
+            const x1 = -8;
+            const y1 = a * x1 + b;
+            const x2 = 8;
+            const y2 = a * x2 + b;
+
+            linearLine.setAttribute('x1', originX + x1 * scale);
+            linearLine.setAttribute('y1', originY - y1 * scale);
+            linearLine.setAttribute('x2', originX + x2 * scale);
+            linearLine.setAttribute('y2', originY - y2 * scale);
+
+            // 2. 繪製斜率三角形 (從 (0, b) 到 (1, b) 再到 (1, a+b))
+            // 點 0: (0, b)
+            const px0 = originX;
+            const py0 = originY - b * scale;
+            // 點 1: (1, b)
+            const px1 = originX + 1 * scale;
+            const py1 = originY - b * scale;
+            // 點 2: (1, a+b)
+            const px2 = originX + 1 * scale;
+            const py2 = originY - (a + b) * scale;
+
+            slopeRun.setAttribute('x1', px0);
+            slopeRun.setAttribute('y1', py0);
+            slopeRun.setAttribute('x2', px1);
+            slopeRun.setAttribute('y2', py1);
+
+            slopeRise.setAttribute('x1', px1);
+            slopeRise.setAttribute('y1', py1);
+            slopeRise.setAttribute('x2', px2);
+            slopeRise.setAttribute('y2', py2);
+
+            // 3. 與 Y 軸交點
+            pYInt.setAttribute('cx', px0);
+            pYInt.setAttribute('cy', py0);
+
+            // 4. 與 X 軸交點 (-b/a, 0)
+            let xIntersectText = "無交點";
+            if (a !== 0) {
+                const x0 = -b / a;
+                const pxX = originX + x0 * scale;
+                pXInt.setAttribute('cx', pxX);
+                pXInt.setAttribute('cy', originY);
+                pXInt.setAttribute('opacity', '1');
+                xIntersectText = `(${x0.toFixed(1)}, 0)`;
+            } else {
+                pXInt.setAttribute('opacity', '0');
+            }
+
+            // 5. 格式化顯示公式
+            const aStr = a === 0 ? '' : (a === 1 ? 'x' : (a === -1 ? '-x' : `${a.toFixed(1)}x`));
+            let bStr = '';
+            if (b !== 0) {
+                bStr = b > 0 ? ` + ${b.toFixed(1)}` : ` - ${Math.abs(b).toFixed(1)}`;
+            }
+
+            if (a === 0) {
+                formulaDisplay.innerHTML = `y = ${b.toFixed(1)}`;
+            } else {
+                formulaDisplay.innerHTML = `y = ${aStr}${bStr}`;
+            }
+
+            // 6. 圖形解說
+            let typeStr = "";
+            if (a > 0) {
+                typeStr = "是一條<b>由左下往右上上升</b>的直線（遞增函數）。";
+            } else if (a < 0) {
+                typeStr = "是一條<b>由左上往右下下降</b>的直線（遞減函數）。";
+            } else {
+                typeStr = "是一條<b>水平線</b>（常數函數）。";
+            }
+
+            explanationDisplay.innerHTML = `此函數${typeStr}<br>
+            與 y 軸交點為 <span class="font-bold text-blue-600">(0, ${b.toFixed(1)})</span>，與 x 軸交點為 <span class="font-bold text-emerald-600">${xIntersectText}</span>。<br>
+            當 x 每往右增加 1 單位，圖形在垂直方向變動 <span class="font-bold text-orange-500">${a.toFixed(1)}</span> 單位 (即斜率)。`;
+        }
+
+        btnReset.addEventListener('click', () => {
+            sliderA.value = 1.0;
+            sliderB.value = 0.0;
+            updateScene();
+        });
+
+        sliderA.addEventListener('input', updateScene);
+        sliderB.addEventListener('input', updateScene);
+
+        // 初始繪製
+        updateScene();
+    </script>
+</body>
+</html>

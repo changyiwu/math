@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>重心 (Centroid) - 布萊克吳數學實驗室</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .draggable {
+            cursor: move;
+            fill: #4f46e5;
+            transition: r 0.1s ease;
+        }
+        .draggable:hover {
+            r: 10;
+        }
+        .wobble-animate {
+            transform-origin: var(--gx) var(--gy);
+            transition: transform 0.1s linear;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12 flex flex-col">
+
+    <!-- 導覽列 -->
+    <nav class="bg-white shadow-md p-4 mb-8">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="index.html" class="flex items-center space-x-2">
+                <i class="fas fa-shapes text-indigo-600 text-2xl"></i>
+                <span class="text-xl font-bold text-gray-800">布萊克吳數學實驗室</span>
+            </a>
+            <div class="text-sm text-gray-500">
+                三角形三心：重心 (Centroid)
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 flex-grow max-w-4xl">
+        <!-- 返回按鈕 -->
+        <a href="index2.html" class="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-bold mb-6 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i> 返回選單
+        </a>
+
+        <!-- 標題區 -->
+        <header class="mb-8">
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-2">重心 (Centroid)</h1>
+            <p class="text-gray-600">
+                重心是三角形<b>三條中線的交點</b>。重心將每條中線分割為 <b>$2:1$ 的比例</b>（頂點到重心的距離為重心到對邊中點距離的 2 倍）。重心也是三角形的「物理平衡點」。
+            </p>
+        </header>
+
+        <!-- 畫布與編輯區 -->
+        <div class="bg-white rounded-2xl p-6 shadow-xl border border-gray-100 mb-8 flex flex-col items-center">
+            
+            <div class="w-full max-w-2xl bg-slate-50 rounded-xl overflow-hidden border border-gray-200 relative mb-6">
+                <!-- SVG 畫布 -->
+                <svg id="svg-canvas" class="w-full h-[400px]" viewBox="0 0 600 400" style="touch-action: none;">
+                    
+                    <!-- 支點與小支撐架 (動畫時顯現) -->
+                    <g id="stand-group" opacity="0">
+                        <line x1="300" y1="230" x2="300" y2="350" stroke="#64748b" stroke-width="4" stroke-linecap="round"></line>
+                        <polygon points="290,350 310,350 300,230" fill="#475569"></polygon>
+                        <circle cx="300" cy="230" r="5" fill="#f59e0b"></circle>
+                    </g>
+
+                    <!-- 可旋轉的整體三角形群組 (主要用於物理平衡動畫) -->
+                    <g id="triangle-group">
+                        <!-- 三角形面 -->
+                        <polygon id="triangle-polygon" points="0,0 0,0 0,0" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"></polygon>
+
+                        <!-- 三條中線，分段繪製以標示 2:1 顏色 -->
+                        <!-- A 中線： A->G (藍), G->M_BC (橘) -->
+                        <line id="median-A-1" stroke="#2563eb" stroke-width="2"></line>
+                        <line id="median-A-2" stroke="#f97316" stroke-width="2" stroke-dasharray="3,3"></line>
+
+                        <!-- B 中線： B->G (藍), G->M_CA (橘) -->
+                        <line id="median-B-1" stroke="#2563eb" stroke-width="2"></line>
+                        <line id="median-B-2" stroke="#f97316" stroke-width="2" stroke-dasharray="3,3"></line>
+
+                        <!-- C 中線： C->G (藍), G->M_AB (橘) -->
+                        <line id="median-C-1" stroke="#2563eb" stroke-width="2"></line>
+                        <line id="median-C-2" stroke="#f97316" stroke-width="2" stroke-dasharray="3,3"></line>
+
+                        <!-- 三角形主體邊線 -->
+                        <line id="side-AB" stroke="#475569" stroke-width="3"></line>
+                        <line id="side-BC" stroke="#475569" stroke-width="3"></line>
+                        <line id="side-CA" stroke="#475569" stroke-width="3"></line>
+
+                        <!-- 中點標籤 -->
+                        <circle id="mid-AB" cx="0" cy="0" r="4" fill="#f97316"></circle>
+                        <circle id="mid-BC" cx="0" cy="0" r="4" fill="#f97316"></circle>
+                        <circle id="mid-CA" cx="0" cy="0" r="4" fill="#f97316"></circle>
+
+                        <!-- 重心點 G -->
+                        <circle id="center-point" cx="0" cy="0" r="6" fill="#4f46e5"></circle>
+                        <text id="center-label" font-weight="bold" font-size="14px" fill="#4f46e5"></text>
+
+                        <!-- 頂點標籤 -->
+                        <text id="label-A" font-weight="bold" font-size="16px" fill="#1e293b">A</text>
+                        <text id="label-B" font-weight="bold" font-size="16px" fill="#1e293b">B</text>
+                        <text id="label-C" font-weight="bold" font-size="16px" fill="#1e293b">C</text>
+
+                        <!-- 拖曳端點 -->
+                        <circle id="vertex-A" class="draggable" cx="300" cy="80" r="7"></circle>
+                        <circle id="vertex-B" class="draggable" cx="150" cy="300" r="7"></circle>
+                        <circle id="vertex-C" class="draggable" cx="450" cy="300" r="7"></circle>
+                    </g>
+                </svg>
+            </div>
+
+            <!-- 控制列 -->
+            <div class="flex space-x-4 mb-6">
+                <button id="btn-balance" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-xl shadow-lg transition-colors flex items-center space-x-2">
+                    <i class="fas fa-balance-scale"></i>
+                    <span>平衡測試 (物理模擬)</span>
+                </button>
+                <button id="btn-reset" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold px-6 py-3 rounded-xl transition-colors">
+                    重置狀態
+                </button>
+            </div>
+
+            <!-- 數據與比例顯示 -->
+            <div id="stats-panel" class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 p-6 rounded-xl border border-gray-100 w-full max-w-2xl text-sm">
+                <!-- A 中線數據 -->
+                <div class="flex flex-col border-r border-gray-200 last:border-0 pr-4">
+                    <span class="font-bold text-gray-700">中線 AD 比例 (從 A 出發)</span>
+                    <span id="ratio-A" class="text-lg font-black text-indigo-600 mt-1">2 : 1</span>
+                    <span id="len-A" class="text-xs text-gray-400">AG = 0px | GD = 0px</span>
+                </div>
+                <!-- B 中線數據 -->
+                <div class="flex flex-col border-r border-gray-200 last:border-0 px-4">
+                    <span class="font-bold text-gray-700">中線 BE 比例 (從 B 出發)</span>
+                    <span id="ratio-B" class="text-lg font-black text-indigo-600 mt-1">2 : 1</span>
+                    <span id="len-B" class="text-xs text-gray-400">BG = 0px | GE = 0px</span>
+                </div>
+                <!-- C 中線數據 -->
+                <div class="flex flex-col last:border-0 pl-4">
+                    <span class="font-bold text-gray-700">中線 CF 比例 (從 C 出發)</span>
+                    <span id="ratio-C" class="text-lg font-black text-indigo-600 mt-1">2 : 1</span>
+                    <span id="len-C" class="text-xs text-gray-400">CG = 0px | GF = 0px</span>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="mt-auto py-8 text-center text-gray-400 text-sm">
+        <p>© 2026 布萊克吳數學實驗室 | 用幾何培養直覺</p>
+    </footer>
+
+    <script>
+        const svg = document.getElementById('svg-canvas');
+        const polygon = document.getElementById('triangle-polygon');
+        const triGroup = document.getElementById('triangle-group');
+        const standGroup = document.getElementById('stand-group');
+        
+        const btnBalance = document.getElementById('btn-balance');
+        const btnReset = document.getElementById('btn-reset');
+        
+        const vertexA = document.getElementById('vertex-A');
+        const vertexB = document.getElementById('vertex-B');
+        const vertexC = document.getElementById('vertex-C');
+
+        const sideAB = document.getElementById('side-AB');
+        const sideBC = document.getElementById('side-BC');
+        const sideCA = document.getElementById('side-CA');
+
+        const medianA1 = document.getElementById('median-A-1');
+        const medianA2 = document.getElementById('median-A-2');
+        const medianB1 = document.getElementById('median-B-1');
+        const medianB2 = document.getElementById('median-B-2');
+        const medianC1 = document.getElementById('median-C-1');
+        const medianC2 = document.getElementById('median-C-2');
+
+        const midAB = document.getElementById('mid-AB');
+        const midBC = document.getElementById('mid-BC');
+        const midCA = document.getElementById('mid-CA');
+
+        const centerPoint = document.getElementById('center-point');
+        const centerLabel = document.getElementById('center-label');
+
+        const labelA = document.getElementById('label-A');
+        const labelB = document.getElementById('label-B');
+        const labelC = document.getElementById('label-C');
+
+        const ratioA = document.getElementById('ratio-A');
+        const ratioB = document.getElementById('ratio-B');
+        const ratioC = document.getElementById('ratio-C');
+
+        const lenAD = document.getElementById('len-A');
+        const lenBE = document.getElementById('len-B');
+        const lenCF = document.getElementById('len-C');
+
+        let pts = {
+            A: { x: 300, y: 80 },
+            B: { x: 150, y: 300 },
+            C: { x: 450, y: 300 }
+        };
+
+        // 平衡動畫的重心與點坐標備份
+        let savedPts = {};
+        let G = { x: 0, y: 0 };
+
+        let activeVertex = null;
+        let isAnimating = false;
+        let animFrameId = null;
+
+        function drawScene() {
+            if (isAnimating) return;
+
+            // 限制邊界
+            for (let k in pts) {
+                pts[k].x = Math.max(20, Math.min(580, pts[k].x));
+                pts[k].y = Math.max(20, Math.min(350, pts[k].y));
+            }
+
+            // 更新端點位置
+            vertexA.setAttribute('cx', pts.A.x); vertexA.setAttribute('cy', pts.A.y);
+            vertexB.setAttribute('cx', pts.B.x); vertexB.setAttribute('cy', pts.B.y);
+            vertexC.setAttribute('cx', pts.C.x); vertexC.setAttribute('cy', pts.C.y);
+
+            // 更新面
+            polygon.setAttribute('points', `${pts.A.x},${pts.A.y} ${pts.B.x},${pts.B.y} ${pts.C.x},${pts.C.y}`);
+
+            // 更新邊線
+            sideAB.setAttribute('x1', pts.A.x); sideAB.setAttribute('y1', pts.A.y); sideAB.setAttribute('x2', pts.B.x); sideAB.setAttribute('y2', pts.B.y);
+            sideBC.setAttribute('x1', pts.B.x); sideBC.setAttribute('y1', pts.B.y); sideBC.setAttribute('x2', pts.C.x); sideBC.setAttribute('y2', pts.C.y);
+            sideCA.setAttribute('x1', pts.C.x); sideCA.setAttribute('y1', pts.C.y); sideCA.setAttribute('x2', pts.A.x); sideCA.setAttribute('y2', pts.A.y);
+
+            // 計算重心 G = (A + B + C) / 3
+            G.x = (pts.A.x + pts.B.x + pts.C.x) / 3;
+            G.y = (pts.A.y + pts.B.y + pts.C.y) / 3;
+
+            centerPoint.setAttribute('cx', G.x);
+            centerPoint.setAttribute('cy', G.y);
+            centerPoint.setAttribute('opacity', '1');
+            centerLabel.setAttribute('x', G.x + 10);
+            centerLabel.setAttribute('y', G.y - 10);
+            centerLabel.setAttribute('opacity', '1');
+            centerLabel.textContent = `G (重心)`;
+
+            // 計算三邊中點
+            const mAB = { x: (pts.A.x + pts.B.x) / 2, y: (pts.A.y + pts.B.y) / 2 };
+            const mBC = { x: (pts.B.x + pts.C.x) / 2, y: (pts.B.y + pts.C.y) / 2 };
+            const mCA = { x: (pts.C.x + pts.A.x) / 2, y: (pts.C.y + pts.A.y) / 2 };
+
+            midAB.setAttribute('cx', mAB.x); midAB.setAttribute('cy', mAB.y);
+            midBC.setAttribute('cx', mBC.x); midBC.setAttribute('cy', mBC.y);
+            midCA.setAttribute('cx', mCA.x); midCA.setAttribute('cy', mCA.y);
+
+            // 繪製中線分段
+            // A中線：A->G (2段), G->mBC (1段)
+            medianA1.setAttribute('x1', pts.A.x); medianA1.setAttribute('y1', pts.A.y); medianA1.setAttribute('x2', G.x);     medianA1.setAttribute('y2', G.y);
+            medianA2.setAttribute('x1', G.x);     medianA2.setAttribute('y1', G.y);     medianA2.setAttribute('x2', mBC.x);   medianA2.setAttribute('y2', mBC.y);
+
+            // B中線：B->G (2段), G->mCA (1段)
+            medianB1.setAttribute('x1', pts.B.x); medianB1.setAttribute('y1', pts.B.y); medianB1.setAttribute('x2', G.x);     medianB1.setAttribute('y2', G.y);
+            medianB2.setAttribute('x1', G.x);     medianB2.setAttribute('y1', G.y);     medianB2.setAttribute('x2', mCA.x);   medianB2.setAttribute('y2', mCA.y);
+
+            // C中線：C->G (2段), G->mAB (1段)
+            medianC1.setAttribute('x1', pts.C.x); medianC1.setAttribute('y1', pts.C.y); medianC1.setAttribute('x2', G.x);     medianC1.setAttribute('y2', G.y);
+            medianC2.setAttribute('x1', G.x);     medianC2.setAttribute('y1', G.y);     medianC2.setAttribute('x2', mAB.x);   medianC2.setAttribute('y2', mAB.y);
+
+            // 頂點標籤
+            labelA.setAttribute('x', pts.A.x); labelA.setAttribute('y', pts.A.y - 15);
+            labelB.setAttribute('x', pts.B.x - 20); labelB.setAttribute('y', pts.B.y + 20);
+            labelC.setAttribute('x', pts.C.x + 10); labelC.setAttribute('y', pts.C.y + 20);
+
+            // 計算長度與比例
+            const lenAG = Math.hypot(pts.A.x - G.x, pts.A.y - G.y);
+            const lenGmBC = Math.hypot(mBC.x - G.x, mBC.y - G.y);
+            const ratioAD = lenAG / lenGmBC;
+            lenAD.textContent = `AG = ${lenAG.toFixed(1)}px | GD = ${lenGmBC.toFixed(1)}px`;
+            ratioA.textContent = `${ratioAD.toFixed(2)} : 1 (≈ 2 : 1)`;
+
+            const lenBG = Math.hypot(pts.B.x - G.x, pts.B.y - G.y);
+            const lenGmCA = Math.hypot(mCA.x - G.x, mCA.y - G.y);
+            const ratioBE = lenBG / lenGmCA;
+            lenBE.textContent = `BG = ${lenBG.toFixed(1)}px | GE = ${lenGmCA.toFixed(1)}px`;
+            ratioB.textContent = `${ratioBE.toFixed(2)} : 1 (≈ 2 : 1)`;
+
+            const lenCG = Math.hypot(pts.C.x - G.x, pts.C.y - G.y);
+            const lenGmAB = Math.hypot(mAB.x - G.x, mAB.y - G.y);
+            const ratioCF = lenCG / lenGmAB;
+            lenCF.textContent = `CG = ${lenCG.toFixed(1)}px | GF = ${lenGmAB.toFixed(1)}px`;
+            ratioC.textContent = `${ratioCF.toFixed(2)} : 1 (≈ 2 : 1)`;
+        }
+
+        // 物理平衡動畫
+        function startBalanceSimulation() {
+            if (isAnimating) return;
+            isAnimating = true;
+            btnBalance.disabled = true;
+
+            // 隱藏拖曳點與重心本身的繪製 (因為我們用一個物理支撐架在重心上撐著它)
+            vertexA.setAttribute('opacity', '0');
+            vertexB.setAttribute('opacity', '0');
+            vertexC.setAttribute('opacity', '0');
+
+            // 備份點座標，並將重心移動到支架頂點 (300, 230) 上
+            savedPts = JSON.parse(JSON.stringify(pts));
+            const currentG = { ...G };
+
+            // 重心與支架對齊的偏置量
+            const targetGx = 300;
+            const targetGy = 230;
+            const ox = targetGx - currentG.x;
+            const oy = targetGy - currentG.y;
+
+            // 將所有點移位，使重心完美落在支架頂點 (300, 230)
+            pts.A.x += ox; pts.A.y += oy;
+            pts.B.x += ox; pts.B.y += oy;
+            pts.C.x += ox; pts.C.y += oy;
+
+            // 重繪位移後的三角形
+            G.x = targetGx; G.y = targetGy;
+            isAnimating = false; // 臨時關閉標記以允許 drawScene 重繪一次位移後圖案
+            drawScene();
+            isAnimating = true;
+
+            // 顯示支撐架與平衡重心
+            standGroup.setAttribute('opacity', '1');
+
+            // 設定群組旋轉的原點為重心 G (300, 230)
+            triGroup.style.transformOrigin = `${targetGx}px ${targetGy}px`;
+
+            let startTime = null;
+            const duration = 5000; // 5秒物理阻尼震盪
+
+            function step(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const elapsed = timestamp - startTime;
+                const progress = elapsed / duration;
+
+                if (progress < 1.0) {
+                    // 阻尼正弦函數： e^(-at) * cos(wt)
+                    const amplitude = 30 * Math.exp(-progress * 4); // 振幅衰減快，5次左右就差不多停了
+                    const freq = 12; // 頻率
+                    const angle = amplitude * Math.cos(progress * freq * Math.PI);
+
+                    triGroup.style.transform = `rotate(${angle}deg)`;
+                    animFrameId = requestAnimationFrame(step);
+                } else {
+                    triGroup.style.transform = 'rotate(0deg)'; // 停在 perfect 0deg
+                    isAnimating = false;
+                    btnBalance.disabled = false;
+                    alert("物理平衡測試成功！三角形重心 G 置於支點上，達成完美平衡！");
+                }
+            }
+
+            animFrameId = requestAnimationFrame(step);
+        }
+
+        function resetScene() {
+            if (animFrameId) cancelAnimationFrame(animFrameId);
+            isAnimating = false;
+            btnBalance.disabled = false;
+
+            triGroup.style.transform = '';
+            standGroup.setAttribute('opacity', '0');
+
+            vertexA.setAttribute('opacity', '1');
+            vertexB.setAttribute('opacity', '1');
+            vertexC.setAttribute('opacity', '1');
+
+            if (savedPts.A) {
+                pts = JSON.parse(JSON.stringify(savedPts));
+            }
+            drawScene();
+        }
+
+        // 拖曳處理
+        function getMousePos(evt) {
+            const rect = svg.getBoundingClientRect();
+            const scaleX = 600 / rect.width;
+            const scaleY = 400 / rect.height;
+            if (evt.touches) {
+                return {
+                    x: (evt.touches[0].clientX - rect.left) * scaleX,
+                    y: (evt.touches[0].clientY - rect.top) * scaleY
+                };
+            }
+            return {
+                x: (evt.clientX - rect.left) * scaleX,
+                y: (evt.clientY - rect.top) * scaleY
+            };
+        }
+
+        function onStart(evt) {
+            if (isAnimating) return;
+            const pos = getMousePos(evt);
+            const threshold = 15;
+            for (let k in pts) {
+                const dist = Math.hypot(pts[k].x - pos.x, pts[k].y - pos.y);
+                if (dist < threshold) {
+                    activeVertex = k;
+                    evt.preventDefault();
+                    break;
+                }
+            }
+        }
+
+        function onMove(evt) {
+            if (!activeVertex || isAnimating) return;
+            const pos = getMousePos(evt);
+            pts[activeVertex].x = pos.x;
+            pts[activeVertex].y = pos.y;
+            drawScene();
+            evt.preventDefault();
+        }
+
+        function onEnd() {
+            activeVertex = null;
+        }
+
+        svg.addEventListener('mousedown', onStart);
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onEnd);
+
+        svg.addEventListener('touchstart', onStart, { passive: false });
+        window.addEventListener('touchmove', onMove, { passive: false });
+        window.addEventListener('touchend', onEnd);
+
+        btnBalance.addEventListener('click', startBalanceSimulation);
+        btnReset.addEventListener('click', resetScene);
+
+        // 初始
+        drawScene();
+    </script>
+</body>
+</html>

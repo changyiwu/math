@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二次函數頂點式 - 布萊克吳數學實驗室</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f2f5;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12 flex flex-col">
+
+    <!-- 導覽列 -->
+    <nav class="bg-white shadow-md p-4 mb-8">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="index.html" class="flex items-center space-x-2">
+                <i class="fas fa-shapes text-indigo-600 text-2xl"></i>
+                <span class="text-xl font-bold text-gray-800">布萊克吳數學實驗室</span>
+            </a>
+            <div class="text-sm text-gray-500">
+                二次函數：頂點式 y = a(x-h)² + k
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 flex-grow max-w-4xl">
+        <!-- 返回按鈕 -->
+        <a href="index3.html" class="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-bold mb-6 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i> 返回選單
+        </a>
+
+        <!-- 標題區 -->
+        <header class="mb-8">
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-2">二次函數頂點式</h1>
+            <p class="text-gray-600">
+                二次函數的頂點式為 $y = a(x-h)^2 + k$，其中點 $(h, k)$ 即為拋物線的<b>頂點</b>。調整下方滑桿，直觀體驗平移與開口變化。
+            </p>
+        </header>
+
+        <!-- 主體內容 -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8 mb-8">
+            
+            <!-- 左側滑桿面板 (5 cols) -->
+            <div class="md:col-span-5 flex flex-col space-y-6">
+                <!-- 滑桿 a -->
+                <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-sm font-bold text-gray-700">開口係數 a (方向與大小)</span>
+                        <span id="valA-text" class="text-lg font-black text-indigo-600">1.0</span>
+                    </div>
+                    <!-- 避免剛好為 0 (二次項係數不能為 0) -->
+                    <input type="range" id="sliderA" min="-2.0" max="2.0" step="0.1" value="1.0" class="w-full h-2 bg-indigo-100 rounded-lg appearance-none cursor-pointer">
+                    <div class="flex justify-between text-xs text-gray-400 mt-1">
+                        <span>-2.0 (向下窄)</span>
+                        <span>0 (不允許)</span>
+                        <span>2.0 (向上窄)</span>
+                    </div>
+                </div>
+
+                <!-- 滑桿 h -->
+                <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-sm font-bold text-gray-700">水平位移 h (左右平移)</span>
+                        <span id="valH-text" class="text-lg font-black text-blue-600">0.0</span>
+                    </div>
+                    <input type="range" id="sliderH" min="-5.0" max="5.0" step="0.2" value="0.0" class="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer">
+                    <div class="flex justify-between text-xs text-gray-400 mt-1">
+                        <span>向左 -5.0</span>
+                        <span>0.0</span>
+                        <span>向右 5.0</span>
+                    </div>
+                </div>
+
+                <!-- 滑桿 k -->
+                <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-sm font-bold text-gray-700">垂直位移 k (上下平移)</span>
+                        <span id="valK-text" class="text-lg font-black text-red-500">0.0</span>
+                    </div>
+                    <input type="range" id="sliderK" min="-5.0" max="5.0" step="0.2" value="0.0" class="w-full h-2 bg-red-100 rounded-lg appearance-none cursor-pointer">
+                    <div class="flex justify-between text-xs text-gray-400 mt-1">
+                        <span>向下 -5.0</span>
+                        <span>0.0</span>
+                        <span>向上 5.0</span>
+                    </div>
+                </div>
+
+                <!-- 恢復預設值 -->
+                <button id="btn-reset" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 rounded-xl transition-colors">
+                    重置為 y = x²
+                </button>
+            </div>
+
+            <!-- 右側繪圖區 (7 cols) -->
+            <div class="md:col-span-7 bg-white rounded-2xl p-6 shadow-xl border border-gray-100 flex flex-col items-center">
+                
+                <div class="w-full bg-slate-900 rounded-xl overflow-hidden border border-gray-800 relative mb-4">
+                    <svg id="svg-canvas" class="w-full h-[350px]" viewBox="0 0 400 350">
+                        <!-- 網格與座標軸 -->
+                        <defs>
+                            <pattern id="smallGrid" width="15" height="15" patternUnits="userSpaceOnUse">
+                                <path d="M 15 0 L 0 0 0 15" fill="none" stroke="#1e293b" stroke-width="0.5" />
+                            </pattern>
+                            <pattern id="mainGrid" width="30" height="30" patternUnits="userSpaceOnUse">
+                                <rect width="30" height="30" fill="url(#smallGrid)" />
+                                <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#334155" stroke-width="1" />
+                            </pattern>
+                        </defs>
+                        <rect width="100%" height="100%" fill="url(#mainGrid)" />
+
+                        <!-- 座標軸 X, Y (中心原點為 (200, 175)，1單位 = 30px) -->
+                        <line x1="0" y1="175" x2="400" y2="175" stroke="#64748b" stroke-width="2"></line>
+                        <line x1="200" y1="0" x2="200" y2="350" stroke="#64748b" stroke-width="2"></line>
+
+                        <!-- 對稱軸 x = h -->
+                        <line id="axis-line" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4,4"></line>
+
+                        <!-- 拋物線 -->
+                        <path id="parabola-path" fill="none" stroke="#6366f1" stroke-width="3" stroke-linecap="round"></path>
+
+                        <!-- 頂點點 (h, k) -->
+                        <circle id="vertex-point" cx="0" cy="0" r="5" fill="#f59e0b" stroke="white" stroke-width="1.5"></circle>
+                        <!-- 頂點文字 -->
+                        <text id="vertex-label" font-size="12px" fill="#f59e0b" font-weight="bold"></text>
+
+                        <!-- 軸箭頭 -->
+                        <polygon points="395,171 400,175 395,179" fill="#64748b"></polygon>
+                        <polygon points="196,5 200,0 204,5" fill="#64748b"></polygon>
+                        
+                        <text x="390" y="195" font-size="12px" fill="#64748b">x</text>
+                        <text x="215" y="15" font-size="12px" fill="#64748b">y</text>
+                    </svg>
+                </div>
+
+                <!-- 公式顯示與解說 -->
+                <div class="w-full text-center space-y-2">
+                    <div id="formula-display" class="text-2xl font-black text-indigo-600">
+                        y = 1(x - 0)² + 0
+                    </div>
+                    <div id="explanation-display" class="text-xs text-gray-500 leading-relaxed min-h-[50px]">
+                        開口向上，頂點在 (0, 0)。
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <footer class="mt-auto py-8 text-center text-gray-400 text-sm">
+        <p>© 2026 布萊克吳數學實驗室 | 探索二次函數圖形性質</p>
+    </footer>
+
+    <script>
+        const sliderA = document.getElementById('sliderA');
+        const sliderH = document.getElementById('sliderH');
+        const sliderK = document.getElementById('sliderK');
+        const valAText = document.getElementById('valA-text');
+        const valHText = document.getElementById('valH-text');
+        const valKText = document.getElementById('valK-text');
+        const btnReset = document.getElementById('btn-reset');
+
+        const parabolaPath = document.getElementById('parabola-path');
+        const axisLine = document.getElementById('axis-line');
+        const vertexPoint = document.getElementById('vertex-point');
+        const vertexLabel = document.getElementById('vertex-label');
+
+        const formulaDisplay = document.getElementById('formula-display');
+        const explanationDisplay = document.getElementById('explanation-display');
+
+        // 原點坐標與比例
+        const originX = 200;
+        const originY = 175;
+        const scale = 30; // 1單位 = 30px
+
+        function updateScene() {
+            let a = parseFloat(sliderA.value);
+            let h = parseFloat(sliderH.value);
+            let k = parseFloat(sliderK.value);
+
+            // 避免 a 剛好為 0，若是 0 就自動跳轉
+            if (a === 0) {
+                // 如果是從正向滑到0，設為 0.1；如果是從負向，設為 -0.1
+                a = 0.1;
+                sliderA.value = 0.1;
+            }
+
+            // 更新數值顯示文字
+            valAText.textContent = a.toFixed(1);
+            valHText.textContent = h.toFixed(1);
+            valKText.textContent = k.toFixed(1);
+
+            // 1. 繪製拋物線
+            // x 範圍 [-10, 10]
+            const points = [];
+            for (let x = -8; x <= 8; x += 0.1) {
+                const y = a * Math.pow(x - h, 2) + k;
+                
+                // 轉為 SVG 像素座標
+                const px = originX + x * scale;
+                const py = originY - y * scale;
+
+                // 限制在畫布高度內才加入，避免超出渲染
+                if (py >= -50 && py <= 400) {
+                    points.push(`${px.toFixed(1)},${py.toFixed(1)}`);
+                }
+            }
+            parabolaPath.setAttribute('d', points.length > 0 ? `M ${points.join(' L ')}` : '');
+
+            // 2. 繪製對稱軸 x = h
+            const axisPx = originX + h * scale;
+            axisLine.setAttribute('x1', axisPx);
+            axisLine.setAttribute('y1', 0);
+            axisLine.setAttribute('x2', axisPx);
+            axisLine.setAttribute('y2', 350);
+
+            // 3. 繪製頂點 (h, k)
+            const vPx = originX + h * scale;
+            const vPy = originY - k * scale;
+            vertexPoint.setAttribute('cx', vPx);
+            vertexPoint.setAttribute('cy', vPy);
+
+            vertexLabel.setAttribute('x', vPx + 10);
+            // 根據開口方向調整標籤高度以防被線擋住
+            vertexLabel.setAttribute('y', a > 0 ? vPy + 18 : vPy - 10);
+            vertexLabel.textContent = `頂點 (${h.toFixed(1)}, ${k.toFixed(1)})`;
+
+            // 4. 動態公式字串
+            // 美化顯示：處理 +0, -0, 1x 等情況
+            const aStr = a === 1 ? '' : (a === -1 ? '-' : a.toFixed(1));
+            const hStr = h === 0 ? 'x' : (h > 0 ? `(x - ${h.toFixed(1)})` : `(x + ${Math.abs(h).toFixed(1)})`);
+            const kStr = k === 0 ? '' : (k > 0 ? ` + ${k.toFixed(1)}` : ` - ${Math.abs(k).toFixed(1)}`);
+            const square = h === 0 ? '²' : '²';
+            
+            formulaDisplay.innerHTML = `y = ${aStr}${hStr}${square}${kStr}`;
+
+            // 5. 幾何特性文字解說
+            const dirStr = a > 0 ? '向上' : '向下';
+            const extremeStr = a > 0 ? '最小值' : '最大值';
+            
+            explanationDisplay.innerHTML = `拋物線開口<b>${dirStr}</b>，對稱軸方程式為 <span class="font-bold text-red-500">x = ${h.toFixed(1)}</span>。<br>
+            當 $x = ${h.toFixed(1)}$ 時，函數有<b>${extremeStr} $y = ${k.toFixed(1)}$</b>（此時對應頂點位置）。`;
+        }
+
+        // 重置
+        btnReset.addEventListener('click', () => {
+            sliderA.value = 1.0;
+            sliderH.value = 0.0;
+            sliderK.value = 0.0;
+            updateScene();
+        });
+
+        // 綁定事件
+        sliderA.addEventListener('input', updateScene);
+        sliderH.addEventListener('input', updateScene);
+        sliderK.addEventListener('input', updateScene);
+
+        // 初始繪製
+        updateScene();
+    </script>
+</body>
+</html>

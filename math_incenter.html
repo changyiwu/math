@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>內心 (Incenter) - 布萊克吳數學實驗室</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .draggable {
+            cursor: move;
+            fill: #4f46e5;
+            transition: r 0.1s ease;
+        }
+        .draggable:hover {
+            r: 10;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12 flex flex-col">
+
+    <!-- 導覽列 -->
+    <nav class="bg-white shadow-md p-4 mb-8">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="index.html" class="flex items-center space-x-2">
+                <i class="fas fa-shapes text-indigo-600 text-2xl"></i>
+                <span class="text-xl font-bold text-gray-800">布萊克吳數學實驗室</span>
+            </a>
+            <div class="text-sm text-gray-500">
+                三角形三心：內心 (Incenter)
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 flex-grow max-w-4xl">
+        <!-- 返回按鈕 -->
+        <a href="index2.html" class="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-bold mb-6 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i> 返回選單
+        </a>
+
+        <!-- 標題區 -->
+        <header class="mb-8">
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-2">內心 (Incenter)</h1>
+            <p class="text-gray-600">
+                內心是三角形<b>三個內角平分線的交點</b>。內心到三角形三邊的垂直距離相等，此相等距離即為<b>內切圓的半徑</b>。
+            </p>
+        </header>
+
+        <!-- 畫布與編輯區 -->
+        <div class="bg-white rounded-2xl p-6 shadow-xl border border-gray-100 mb-8 flex flex-col items-center">
+            
+            <!-- 快速切換按鈕 -->
+            <div class="flex space-x-3 mb-6">
+                <button onclick="setTriangle('equilateral')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-4 py-2 rounded-xl text-sm transition-colors">
+                    正三角形 (內心與重心、外心重合)
+                </button>
+                <button onclick="setTriangle('isosceles')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-4 py-2 rounded-xl text-sm transition-colors">
+                    等腰三角形 (對稱結構)
+                </button>
+                <button onclick="setTriangle('scalene')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-4 py-2 rounded-xl text-sm transition-colors">
+                    任意不等邊三角形
+                </button>
+            </div>
+
+            <div class="w-full max-w-2xl bg-slate-50 rounded-xl overflow-hidden border border-gray-200 relative mb-6">
+                <!-- SVG 畫布 -->
+                <svg id="svg-canvas" class="w-full h-[400px]" viewBox="0 0 600 400" style="touch-action: none;">
+                    <!-- 內切圓 -->
+                    <circle id="incircle" cx="0" cy="0" r="0" fill="none" stroke="#059669" stroke-width="2.5"></circle>
+
+                    <!-- 三角形面 -->
+                    <polygon id="triangle-polygon" points="0,0 0,0 0,0" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"></polygon>
+
+                    <!-- 三條角平分線 -->
+                    <line id="bisector-A" stroke="#10b981" stroke-width="1.5" stroke-dasharray="2,2" opacity="0.6"></line>
+                    <line id="bisector-B" stroke="#10b981" stroke-width="1.5" stroke-dasharray="2,2" opacity="0.6"></line>
+                    <line id="bisector-C" stroke="#10b981" stroke-width="1.5" stroke-dasharray="2,2" opacity="0.6"></line>
+
+                    <!-- 到三邊的垂直線段 (半徑) -->
+                    <line id="perp-AB" stroke="#ef4444" stroke-width="1.5"></line>
+                    <line id="perp-BC" stroke="#ef4444" stroke-width="1.5"></line>
+                    <line id="perp-CA" stroke="#ef4444" stroke-width="1.5"></line>
+
+                    <!-- 直角記號 (小正方形折線) -->
+                    <polyline id="rt-AB" fill="none" stroke="#ef4444" stroke-width="1" opacity="0.8"></polyline>
+                    <polyline id="rt-BC" fill="none" stroke="#ef4444" stroke-width="1" opacity="0.8"></polyline>
+                    <polyline id="rt-CA" fill="none" stroke="#ef4444" stroke-width="1" opacity="0.8"></polyline>
+
+                    <!-- 三角形主體線 -->
+                    <line id="side-AB" stroke="#475569" stroke-width="3"></line>
+                    <line id="side-BC" stroke="#475569" stroke-width="3"></line>
+                    <line id="side-CA" stroke="#475569" stroke-width="3"></line>
+
+                    <!-- 內心點 I -->
+                    <circle id="center-point" cx="0" cy="0" r="6" fill="#059669"></circle>
+                    <text id="center-label" font-weight="bold" font-size="14px" fill="#059669"></text>
+
+                    <!-- 頂點標籤 -->
+                    <text id="label-A" font-weight="bold" font-size="16px" fill="#1e293b">A</text>
+                    <text id="label-B" font-weight="bold" font-size="16px" fill="#1e293b">B</text>
+                    <text id="label-C" font-weight="bold" font-size="16px" fill="#1e293b">C</text>
+
+                    <!-- 拖曳端點 -->
+                    <circle id="vertex-A" class="draggable" cx="300" cy="80" r="7"></circle>
+                    <circle id="vertex-B" class="draggable" cx="150" cy="300" r="7"></circle>
+                    <circle id="vertex-C" class="draggable" cx="450" cy="300" r="7"></circle>
+                </svg>
+            </div>
+
+            <!-- 數據顯示 -->
+            <div id="stats-panel" class="text-center bg-gray-50 px-8 py-4 rounded-xl border border-gray-100 w-full max-w-lg space-y-1">
+                <div id="distance-info" class="text-lg font-bold text-emerald-600">
+                    內心到三邊距離 = 0.0 px (內切圓半徑)
+                </div>
+                <div class="text-xs text-gray-400">
+                    內心必定永遠在三角形的「內部」。
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="mt-auto py-8 text-center text-gray-400 text-sm">
+        <p>© 2026 布萊克吳數學實驗室 | 用視覺學幾何</p>
+    </footer>
+
+    <script>
+        const svg = document.getElementById('svg-canvas');
+        const polygon = document.getElementById('triangle-polygon');
+        
+        const vertexA = document.getElementById('vertex-A');
+        const vertexB = document.getElementById('vertex-B');
+        const vertexC = document.getElementById('vertex-C');
+
+        const sideAB = document.getElementById('side-AB');
+        const sideBC = document.getElementById('side-BC');
+        const sideCA = document.getElementById('side-CA');
+
+        const bisectorA = document.getElementById('bisector-A');
+        const bisectorB = document.getElementById('bisector-B');
+        const bisectorC = document.getElementById('bisector-C');
+
+        const perpAB = document.getElementById('perp-AB');
+        const perpBC = document.getElementById('perp-BC');
+        const perpCA = document.getElementById('perp-CA');
+
+        const rtAB = document.getElementById('rt-AB');
+        const rtBC = document.getElementById('rt-BC');
+        const rtCA = document.getElementById('rt-CA');
+
+        const centerPoint = document.getElementById('center-point');
+        const centerLabel = document.getElementById('center-label');
+        const incircle = document.getElementById('incircle');
+
+        const labelA = document.getElementById('label-A');
+        const labelB = document.getElementById('label-B');
+        const labelC = document.getElementById('label-C');
+
+        const distanceInfo = document.getElementById('distance-info');
+
+        let pts = {
+            A: { x: 300, y: 80 },
+            B: { x: 150, y: 300 },
+            C: { x: 450, y: 300 }
+        };
+
+        let activeVertex = null;
+
+        const presets = {
+            equilateral: {
+                A: { x: 300, y: 80 },
+                B: { x: 145, y: 348 },
+                C: { x: 455, y: 348 }
+            },
+            isosceles: {
+                A: { x: 300, y: 60 },
+                B: { x: 200, y: 300 },
+                C: { x: 400, y: 300 }
+            },
+            scalene: {
+                A: { x: 320, y: 90 },
+                B: { x: 120, y: 280 },
+                C: { x: 480, y: 320 }
+            }
+        };
+
+        function setTriangle(type) {
+            pts = JSON.parse(JSON.stringify(presets[type]));
+            drawScene();
+        }
+
+        // 投影點 (點 p 投影到直線 p1-p2 上)
+        function getProjectionPoint(p, p1, p2) {
+            const dx = p2.x - p1.x;
+            const dy = p2.y - p1.y;
+            const lenSq = dx * dx + dy * dy;
+            if (lenSq === 0) return { ...p1 };
+
+            // 投影係數 t
+            const t = ((p.x - p1.x) * dx + (p.y - p1.y) * dy) / lenSq;
+            return {
+                x: p1.x + t * dx,
+                y: p1.y + t * dy
+            };
+        }
+
+        // 畫出直角符號
+        // I: 內心, P: 投影點, sidePt: 朝向的頂點 (例如 B)
+        function getRightAngleMark(I, P, sidePt) {
+            // 從 P 朝 I 的單位向量
+            const vIP = { x: I.x - P.x, y: I.y - P.y };
+            const dIP = Math.hypot(vIP.x, vIP.y);
+            if (dIP === 0) return "";
+            const uIP = { x: vIP.x / dIP, y: vIP.y / dIP };
+
+            // 從 P 朝 sidePt 的單位向量
+            const vSP = { x: sidePt.x - P.x, y: sidePt.y - P.y };
+            const dSP = Math.hypot(vSP.x, vSP.y);
+            if (dSP === 0) return "";
+            const uSP = { x: vSP.x / dSP, y: vSP.y / dSP };
+
+            // 構建正方形的另外兩個點
+            const size = 10;
+            const pt1 = { x: P.x + size * uIP.x, y: P.y + size * uIP.y };
+            const pt2 = { x: P.x + size * uIP.x + size * uSP.x, y: P.y + size * uIP.y + size * uSP.y };
+            const pt3 = { x: P.x + size * uSP.x, y: P.y + size * uSP.y };
+
+            return `${pt1.x},${pt1.y} ${pt2.x},${pt2.y} ${pt3.x},${pt3.y}`;
+        }
+
+        function drawScene() {
+            // 限制邊界
+            for (let k in pts) {
+                pts[k].x = Math.max(20, Math.min(580, pts[k].x));
+                pts[k].y = Math.max(20, Math.min(350, pts[k].y));
+            }
+
+            // 更新端點位置
+            vertexA.setAttribute('cx', pts.A.x); vertexA.setAttribute('cy', pts.A.y);
+            vertexB.setAttribute('cx', pts.B.x); vertexB.setAttribute('cy', pts.B.y);
+            vertexC.setAttribute('cx', pts.C.x); vertexC.setAttribute('cy', pts.C.y);
+
+            // 更新三角形面
+            polygon.setAttribute('points', `${pts.A.x},${pts.A.y} ${pts.B.x},${pts.B.y} ${pts.C.x},${pts.C.y}`);
+
+            // 更新邊線
+            sideAB.setAttribute('x1', pts.A.x); sideAB.setAttribute('y1', pts.A.y); sideAB.setAttribute('x2', pts.B.x); sideAB.setAttribute('y2', pts.B.y);
+            sideBC.setAttribute('x1', pts.B.x); sideBC.setAttribute('y1', pts.B.y); sideBC.setAttribute('x2', pts.C.x); sideBC.setAttribute('y2', pts.C.y);
+            sideCA.setAttribute('x1', pts.C.x); sideCA.setAttribute('y1', pts.C.y); sideCA.setAttribute('x2', pts.A.x); sideCA.setAttribute('y2', pts.A.y);
+
+            // 計算邊長
+            const a = Math.hypot(pts.B.x - pts.C.x, pts.B.y - pts.C.y); // BC 邊
+            const b = Math.hypot(pts.A.x - pts.C.x, pts.A.y - pts.C.y); // CA 邊
+            const c = Math.hypot(pts.A.x - pts.B.x, pts.A.y - pts.B.y); // AB 邊
+
+            const perimeter = a + b + c;
+
+            // 計算內心 I = (a*A + b*B + c*C) / perimeter
+            const I = {
+                x: (a * pts.A.x + b * pts.B.x + c * pts.C.x) / perimeter,
+                y: (a * pts.A.y + b * pts.B.y + c * pts.C.y) / perimeter
+            };
+
+            centerPoint.setAttribute('cx', I.x);
+            centerPoint.setAttribute('cy', I.y);
+            centerLabel.setAttribute('x', I.x + 10);
+            centerLabel.setAttribute('y', I.y - 10);
+            centerLabel.textContent = `I (內心)`;
+
+            // 繪製角平分線 (從頂點連到內心並延伸至對面邊上)
+            bisectorA.setAttribute('x1', pts.A.x); bisectorA.setAttribute('y1', pts.A.y);
+            bisectorA.setAttribute('x2', I.x);     bisectorA.setAttribute('y2', I.y);
+
+            bisectorB.setAttribute('x1', pts.B.x); bisectorB.setAttribute('y1', pts.B.y);
+            bisectorB.setAttribute('x2', I.x);     bisectorB.setAttribute('y2', I.y);
+
+            bisectorC.setAttribute('x1', pts.C.x); bisectorC.setAttribute('y1', pts.C.y);
+            bisectorC.setAttribute('x2', I.x);     bisectorC.setAttribute('y2', I.y);
+
+            // 計算內心到三邊的投影點 (即切點)
+            const projAB = getProjectionPoint(I, pts.A, pts.B);
+            const projBC = getProjectionPoint(I, pts.B, pts.C);
+            const projCA = getProjectionPoint(I, pts.C, pts.A);
+
+            // 繪製垂直輔助線
+            perpAB.setAttribute('x1', I.x); perpAB.setAttribute('y1', I.y); perpAB.setAttribute('x2', projAB.x); perpAB.setAttribute('y2', projAB.y);
+            perpBC.setAttribute('x1', I.x); perpBC.setAttribute('y1', I.y); perpBC.setAttribute('x2', projBC.x); perpBC.setAttribute('y2', projBC.y);
+            perpCA.setAttribute('x1', I.x); perpCA.setAttribute('y1', I.y); perpCA.setAttribute('x2', projCA.x); perpCA.setAttribute('y2', projCA.y);
+
+            // 繪製直角標記
+            rtAB.setAttribute('points', getRightAngleMark(I, projAB, pts.A));
+            rtBC.setAttribute('points', getRightAngleMark(I, projBC, pts.B));
+            rtCA.setAttribute('points', getRightAngleMark(I, projCA, pts.C));
+
+            // 計算半徑 R (內心到投影點的距離)
+            const R = Math.hypot(I.x - projBC.x, I.y - projBC.y);
+            
+            // 繪製內切圓
+            incircle.setAttribute('cx', I.x);
+            incircle.setAttribute('cy', I.y);
+            incircle.setAttribute('r', R);
+
+            // 頂點標籤
+            labelA.setAttribute('x', pts.A.x); labelA.setAttribute('y', pts.A.y - 15);
+            labelB.setAttribute('x', pts.B.x - 20); labelB.setAttribute('y', pts.B.y + 20);
+            labelC.setAttribute('x', pts.C.x + 10); labelC.setAttribute('y', pts.C.y + 20);
+
+            // 更新數據顯示
+            distanceInfo.textContent = `內心到三邊距離 = ${R.toFixed(1)} px (內切圓半徑)`;
+        }
+
+        // 拖曳處理
+        function getMousePos(evt) {
+            const rect = svg.getBoundingClientRect();
+            const scaleX = 600 / rect.width;
+            const scaleY = 400 / rect.height;
+            if (evt.touches) {
+                return {
+                    x: (evt.touches[0].clientX - rect.left) * scaleX,
+                    y: (evt.touches[0].clientY - rect.top) * scaleY
+                };
+            }
+            return {
+                x: (evt.clientX - rect.left) * scaleX,
+                y: (evt.clientY - rect.top) * scaleY
+            };
+        }
+
+        function onStart(evt) {
+            const pos = getMousePos(evt);
+            const threshold = 15;
+            for (let k in pts) {
+                const dist = Math.hypot(pts[k].x - pos.x, pts[k].y - pos.y);
+                if (dist < threshold) {
+                    activeVertex = k;
+                    evt.preventDefault();
+                    break;
+                }
+            }
+        }
+
+        function onMove(evt) {
+            if (!activeVertex) return;
+            const pos = getMousePos(evt);
+            pts[activeVertex].x = pos.x;
+            pts[activeVertex].y = pos.y;
+            drawScene();
+            evt.preventDefault();
+        }
+
+        function onEnd() {
+            activeVertex = null;
+        }
+
+        svg.addEventListener('mousedown', onStart);
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onEnd);
+
+        svg.addEventListener('touchstart', onStart, { passive: false });
+        window.addEventListener('touchmove', onMove, { passive: false });
+        window.addEventListener('touchend', onEnd);
+
+        // 初始繪製
+        drawScene();
+    </script>
+</body>
+</html>

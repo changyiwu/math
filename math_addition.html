@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>整數加法視覺化 - 布萊克吳數學實驗室</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .circle-add {
+            transition: all 0.5s ease-in-out;
+        }
+        .cancellation-active {
+            animation: popOut 0.5s forwards;
+        }
+        @keyframes popOut {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12 flex flex-col">
+
+    <!-- 導覽列 -->
+    <nav class="bg-white shadow-md p-4 mb-8">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="index.html" class="flex items-center space-x-2">
+                <i class="fas fa-shapes text-indigo-600 text-2xl"></i>
+                <span class="text-xl font-bold text-gray-800">布萊克吳數學實驗室</span>
+            </a>
+            <div class="text-sm text-gray-500">
+                1. 整數加法視覺化
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 flex-grow max-w-4xl">
+        <!-- 返回按鈕 -->
+        <a href="index.html" class="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-bold mb-6 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i> 返回選單
+        </a>
+
+        <!-- 標題區 -->
+        <header class="mb-8">
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-2">整數加法視覺化</h1>
+            <p class="text-gray-600">
+                透過拖曳滑桿來設定兩個整數，觀察正負數圓圈如何進行「抵銷」，並同步在數線上觀察移動方向。
+            </p>
+        </header>
+
+        <!-- 控制面板 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- 數值 A -->
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-lg font-bold text-blue-600">整數 A</span>
+                    <span id="valA-display" class="text-2xl font-black text-blue-600">0</span>
+                </div>
+                <input type="range" id="sliderA" min="-10" max="10" value="0" class="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer">
+                <div class="flex justify-between text-xs text-gray-400 mt-2">
+                    <span>-10</span>
+                    <span>0</span>
+                    <span>10</span>
+                </div>
+            </div>
+
+            <!-- 數值 B -->
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-lg font-bold text-red-600">整數 B</span>
+                    <span id="valB-display" class="text-2xl font-black text-red-600">0</span>
+                </div>
+                <input type="range" id="sliderB" min="-10" max="10" value="0" class="w-full h-2 bg-red-100 rounded-lg appearance-none cursor-pointer">
+                <div class="flex justify-between text-xs text-gray-400 mt-2">
+                    <span>-10</span>
+                    <span>0</span>
+                    <span>10</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 視覺化區域 -->
+        <div class="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 mb-8 flex flex-col items-center">
+            <h2 class="text-xl font-bold text-gray-800 mb-6">圓圈抵銷實驗室</h2>
+            
+            <div class="flex flex-col md:flex-row justify-around w-full gap-8 mb-8">
+                <!-- A 的圓圈區 -->
+                <div class="flex flex-col items-center flex-1 border border-blue-50 rounded-xl p-4 bg-blue-50/20">
+                    <span class="font-bold text-blue-600 mb-2">數值 A</span>
+                    <div id="containerA" class="flex flex-wrap gap-2 justify-center content-start min-h-[100px] w-full"></div>
+                </div>
+
+                <!-- B 的圓圈區 -->
+                <div class="flex flex-col items-center flex-1 border border-red-50 rounded-xl p-4 bg-red-50/20">
+                    <span class="font-bold text-red-600 mb-2">數值 B</span>
+                    <div id="containerB" class="flex flex-wrap gap-2 justify-center content-start min-h-[100px] w-full"></div>
+                </div>
+            </div>
+
+            <!-- 操作按鈕 -->
+            <div class="flex space-x-4 mb-6">
+                <button id="btn-animate" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-xl shadow-lg transition-colors flex items-center space-x-2">
+                    <i class="fas fa-play"></i>
+                    <span>執行抵銷動畫</span>
+                </button>
+                <button id="btn-reset" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold px-6 py-3 rounded-xl transition-colors">
+                    重置狀態
+                </button>
+            </div>
+
+            <!-- 計算結果文字 -->
+            <div class="text-center">
+                <div id="formula-text" class="text-2xl font-bold text-gray-800">0 + 0 = 0</div>
+                <div id="explanation-text" class="text-sm text-gray-500 mt-2">請調整上方滑桿開始實驗。</div>
+            </div>
+        </div>
+
+        <!-- 數線投影區 -->
+        <div class="bg-white rounded-2xl p-8 shadow-xl border border-gray-100">
+            <h2 class="text-xl font-bold text-gray-800 mb-6">數線上的移動</h2>
+            
+            <div class="w-full overflow-x-auto py-4">
+                <svg id="number-line" class="mx-auto" width="760" height="150" viewBox="0 0 760 150">
+                    <!-- 數線軸 -->
+                    <line x1="50" y1="100" x2="710" y2="100" stroke="#cccccc" stroke-width="3" stroke-linecap="round"></line>
+                    <polygon points="710,95 720,100 710,105" fill="#cccccc"></polygon>
+                    <polygon points="50,95 40,100 50,105" fill="#cccccc"></polygon>
+
+                    <!-- 刻度與數字 -->
+                    <!-- 0 在 x=380, 每格間距 30 像素 (從 -10 到 10) -->
+                    <!-- 刻度迴圈會在 JS 裡動態產生，或者寫靜態 -->
+                    <g id="ticks"></g>
+                    
+                    <!-- 移動箭頭 -->
+                    <path id="arrowA" d="" fill="none" stroke="#2563eb" stroke-width="4" stroke-dasharray="5,5" marker-end="url(#blue-arrow)"></path>
+                    <path id="arrowB" d="" fill="none" stroke="#dc2626" stroke-width="4" stroke-dasharray="5,5" marker-end="url(#red-arrow)"></path>
+
+                    <!-- 定義箭頭標誌 -->
+                    <defs>
+                        <marker id="blue-arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"></path>
+                        </marker>
+                        <marker id="red-arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"></path>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+        </div>
+    </main>
+
+    <footer class="mt-auto py-8 text-center text-gray-400 text-sm">
+        <p>© 2026 布萊克吳數學實驗室 | 讓數學直觀有趣</p>
+    </footer>
+
+    <script>
+        const sliderA = document.getElementById('sliderA');
+        const sliderB = document.getElementById('sliderB');
+        const valADisplay = document.getElementById('valA-display');
+        const valBDisplay = document.getElementById('valB-display');
+        const containerA = document.getElementById('containerA');
+        const containerB = document.getElementById('containerB');
+        const btnAnimate = document.getElementById('btn-animate');
+        const btnReset = document.getElementById('btn-reset');
+        const formulaText = document.getElementById('formula-text');
+        const explanationText = document.getElementById('explanation-text');
+        
+        let aValue = 0;
+        let bValue = 0;
+        let isAnimating = false;
+
+        // 初始化數線刻度
+        const ticksGroup = document.getElementById('ticks');
+        const originX = 380;
+        const spacing = 30; // 每單位 30px
+        for (let i = -10; i <= 10; i++) {
+            const x = originX + i * spacing;
+            
+            // 刻度線
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', x);
+            line.setAttribute('y1', 95);
+            line.setAttribute('x2', x);
+            line.setAttribute('y2', 105);
+            line.setAttribute('stroke', i === 0 ? '#4f46e5' : '#aaaaaa');
+            line.setAttribute('stroke-width', i === 0 ? '3' : '1.5');
+            ticksGroup.appendChild(line);
+
+            // 數字標籤
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('x', x);
+            text.setAttribute('y', 125);
+            text.setAttribute('text-anchor', 'middle');
+            text.setAttribute('font-size', '12px');
+            text.setAttribute('fill', i === 0 ? '#4f46e5' : '#666666');
+            if (i === 0) text.setAttribute('font-weight', 'bold');
+            text.textContent = i;
+            ticksGroup.appendChild(text);
+        }
+
+        function createCircle(value, isA) {
+            const div = document.createElement('div');
+            const colorClass = value > 0 ? 'bg-blue-500 text-white' : 'bg-red-500 text-white';
+            const sign = value > 0 ? '+' : '-';
+            div.className = `w-10 h-10 rounded-full ${colorClass} flex items-center justify-center font-bold text-lg shadow-md transform scale-0 transition-transform duration-300 circle-add`;
+            div.textContent = sign;
+            
+            // 用於動畫辨識
+            div.dataset.sign = sign;
+            div.dataset.owner = isA ? 'A' : 'B';
+            return div;
+        }
+
+        function updateUI() {
+            if (isAnimating) return;
+            aValue = parseInt(sliderA.value);
+            bValue = parseInt(sliderB.value);
+
+            valADisplay.textContent = aValue > 0 ? `+${aValue}` : aValue;
+            valBDisplay.textContent = bValue > 0 ? `+${bValue}` : bValue;
+
+            // 更新容器圓圈
+            containerA.innerHTML = '';
+            const countA = Math.abs(aValue);
+            for (let i = 0; i < countA; i++) {
+                const c = createCircle(aValue, true);
+                containerA.appendChild(c);
+                setTimeout(() => c.classList.remove('scale-0'), i * 20);
+            }
+
+            containerB.innerHTML = '';
+            const countB = Math.abs(bValue);
+            for (let i = 0; i < countB; i++) {
+                const c = createCircle(bValue, false);
+                containerB.appendChild(c);
+                setTimeout(() => c.classList.remove('scale-0'), i * 20);
+            }
+
+            // 更新公式與說明
+            const result = aValue + bValue;
+            const signA = aValue >= 0 ? `${aValue}` : `(${aValue})`;
+            const signB = bValue >= 0 ? `${bValue}` : `(${bValue})`;
+            formulaText.textContent = `${signA} + ${signB} = ${result}`;
+            
+            if (aValue === 0 && bValue === 0) {
+                explanationText.textContent = "請調整上方滑桿開始實驗。";
+            } else if (aValue * bValue > 0) {
+                explanationText.textContent = `同號數相加：將所有 ${aValue > 0 ? '正' : '負'}數圓圈合併，結果為 ${result}。`;
+            } else if (aValue * bValue < 0) {
+                explanationText.textContent = `異號數相加：點擊下方「執行抵銷動畫」來觀察正負抵銷的過程！`;
+            } else {
+                explanationText.textContent = `加數或被加數為零，結果等於原數。`;
+            }
+
+            updateNumberLine();
+        }
+
+        function updateNumberLine() {
+            const arrowA = document.getElementById('arrowA');
+            const arrowB = document.getElementById('arrowB');
+
+            if (aValue === 0) {
+                arrowA.setAttribute('d', '');
+            } else {
+                const startX = originX;
+                const endX = originX + aValue * spacing;
+                // 畫弧線
+                const controlY = 60; // 弧度高度
+                arrowA.setAttribute('d', `M ${startX} 100 Q ${(startX + endX)/2} ${controlY} ${endX} 95`);
+            }
+
+            if (bValue === 0) {
+                arrowB.setAttribute('d', '');
+            } else {
+                const startX = originX + aValue * spacing;
+                const endX = startX + bValue * spacing;
+                const controlY = aValue * bValue < 0 ? 40 : 50; // 如果方向相反，B 畫得更高
+                arrowB.setAttribute('d', `M ${startX} 100 Q ${(startX + endX)/2} ${controlY} ${endX} 95`);
+            }
+        }
+
+        async function playCancellation() {
+            if (isAnimating) return;
+            // 異號才需要抵銷
+            if ((aValue >= 0 && bValue >= 0) || (aValue <= 0 && bValue <= 0)) {
+                alert("同號數或零不需要進行抵銷動畫喔！");
+                return;
+            }
+
+            isAnimating = true;
+            sliderA.disabled = true;
+            sliderB.disabled = true;
+            btnAnimate.disabled = true;
+
+            const circlesA = Array.from(containerA.children);
+            const circlesB = Array.from(containerB.children);
+
+            const minCount = Math.min(circlesA.length, circlesB.length);
+            explanationText.textContent = `正在將 1 個正數與 1 個負數兩兩配對，互相抵銷成 0...`;
+
+            for (let i = 0; i < minCount; i++) {
+                const cA = circlesA[i];
+                const cB = circlesB[i];
+
+                // 獲取位置並移向中央
+                cA.style.transform = 'translateY(30px) scale(1.1)';
+                cB.style.transform = 'translateY(-30px) scale(1.1)';
+                cA.style.zIndex = 50;
+                cB.style.zIndex = 50;
+
+                await new Promise(r => setTimeout(r, 600));
+
+                // 播放爆炸/消失動畫
+                cA.classList.add('cancellation-active');
+                cB.classList.add('cancellation-active');
+
+                await new Promise(r => setTimeout(r, 400));
+            }
+
+            // 動態更新公式
+            const result = aValue + bValue;
+            const signA = aValue >= 0 ? `${aValue}` : `(${aValue})`;
+            const signB = bValue >= 0 ? `${bValue}` : `(${bValue})`;
+            
+            formulaText.textContent = `${signA} + ${signB} = ${result}`;
+            explanationText.innerHTML = `抵銷完成！剩下 <span class="font-bold ${result > 0 ? 'text-blue-600' : 'text-red-600'}">${Math.abs(result)} 個${result > 0 ? '正' : '負'}數圓圈</span>，結果為 ${result}。`;
+
+            isAnimating = false;
+            sliderA.disabled = false;
+            sliderB.disabled = false;
+            btnAnimate.disabled = false;
+        }
+
+        sliderA.addEventListener('input', updateUI);
+        sliderB.addEventListener('input', updateUI);
+        btnAnimate.addEventListener('click', playCancellation);
+        btnReset.addEventListener('click', () => {
+            sliderA.value = 0;
+            sliderB.value = 0;
+            updateUI();
+        });
+
+        // 初始化
+        updateUI();
+    </script>
+</body>
+</html>

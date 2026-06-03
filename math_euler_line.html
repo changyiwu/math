@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>特殊三角形三心關係與歐拉線 - 布萊克吳數學實驗室</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .draggable {
+            cursor: move;
+            fill: #4f46e5;
+            transition: r 0.1s ease;
+        }
+        .draggable:hover {
+            r: 10;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12 flex flex-col">
+
+    <!-- 導覽列 -->
+    <nav class="bg-white shadow-md p-4 mb-8">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="index.html" class="flex items-center space-x-2">
+                <i class="fas fa-shapes text-indigo-600 text-2xl"></i>
+                <span class="text-xl font-bold text-gray-800">布萊克吳數學實驗室</span>
+            </a>
+            <div class="text-sm text-gray-500">
+                三角形三心：多心關係與歐拉線
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 flex-grow max-w-4xl">
+        <!-- 返回按鈕 -->
+        <a href="index2.html" class="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-bold mb-6 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i> 返回選單
+        </a>
+
+        <!-- 標題區 -->
+        <header class="mb-8">
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-2">特殊三角形三心與歐拉線</h1>
+            <p class="text-gray-600">
+                拖曳頂點改變三角形，觀察外心、重心、內心與垂心的位置關係。在任意三角形中，<b>外心 (O)、重心 (G)、垂心 (H) 三點共線</b>，這條直線稱為<b>歐拉線 (Euler Line)</b>。
+            </p>
+        </header>
+
+        <!-- 畫布與編輯區 -->
+        <div class="bg-white rounded-2xl p-6 shadow-xl border border-gray-100 mb-8 flex flex-col items-center">
+            
+            <!-- 快速切換按鈕 -->
+            <div class="flex space-x-3 mb-6">
+                <button onclick="setTriangle('equilateral')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-4 py-2 rounded-xl text-sm transition-colors">
+                    正三角形 (四心合一)
+                </button>
+                <button onclick="setTriangle('isosceles')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-4 py-2 rounded-xl text-sm transition-colors">
+                    等腰三角形 (四心共線)
+                </button>
+                <button onclick="setTriangle('scalene')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-4 py-2 rounded-xl text-sm transition-colors">
+                    任意不等邊三角形 (歐拉線)
+                </button>
+            </div>
+
+            <div class="w-full max-w-2xl bg-slate-50 rounded-xl overflow-hidden border border-gray-200 relative mb-6">
+                <!-- SVG 畫布 -->
+                <svg id="svg-canvas" class="w-full h-[400px]" viewBox="0 0 600 400" style="touch-action: none;">
+                    
+                    <!-- 歐拉線 (Euler Line) -->
+                    <line id="euler-line" stroke="#8b5cf6" stroke-width="3" stroke-linecap="round"></line>
+
+                    <!-- 三角形面 -->
+                    <polygon id="triangle-polygon" points="0,0 0,0 0,0" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"></polygon>
+
+                    <!-- 三角形主體線 -->
+                    <line id="side-AB" stroke="#475569" stroke-width="2.5"></line>
+                    <line id="side-BC" stroke="#475569" stroke-width="2.5"></line>
+                    <line id="side-CA" stroke="#475569" stroke-width="2.5"></line>
+
+                    <!-- 各心點標誌 -->
+                    <!-- 外心 O (藍) -->
+                    <circle id="point-O" cx="0" cy="0" r="6" fill="#2563eb"></circle>
+                    <!-- 重心 G (橘) -->
+                    <circle id="point-G" cx="0" cy="0" r="6" fill="#f97316"></circle>
+                    <!-- 垂心 H (紅) -->
+                    <circle id="point-H" cx="0" cy="0" r="6" fill="#ef4444"></circle>
+                    <!-- 內心 I (綠) -->
+                    <circle id="point-I" cx="0" cy="0" r="6" fill="#059669"></circle>
+
+                    <!-- 點標籤 -->
+                    <text id="label-O" font-weight="bold" font-size="12px" fill="#2563eb">O (外心)</text>
+                    <text id="label-G" font-weight="bold" font-size="12px" fill="#f97316">G (重心)</text>
+                    <text id="label-H" font-weight="bold" font-size="12px" fill="#ef4444">H (垂心)</text>
+                    <text id="label-I" font-weight="bold" font-size="12px" fill="#059669">I (內心)</text>
+
+                    <!-- 頂點標籤 -->
+                    <text id="label-A" font-weight="bold" font-size="16px" fill="#1e293b">A</text>
+                    <text id="label-B" font-weight="bold" font-size="16px" fill="#1e293b">B</text>
+                    <text id="label-C" font-weight="bold" font-size="16px" fill="#1e293b">C</text>
+
+                    <!-- 拖曳端點 -->
+                    <circle id="vertex-A" class="draggable" cx="300" cy="80" r="7"></circle>
+                    <circle id="vertex-B" class="draggable" cx="150" cy="300" r="7"></circle>
+                    <circle id="vertex-C" class="draggable" cx="450" cy="300" r="7"></circle>
+                </svg>
+            </div>
+
+            <!-- 圖例與資訊 -->
+            <div id="stats-panel" class="w-full max-w-2xl bg-gray-50 p-6 rounded-xl border border-gray-100 flex flex-col space-y-4">
+                <!-- 圖例 -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-bold justify-items-center">
+                    <div class="flex items-center space-x-2"><span class="w-3.5 h-3.5 rounded-full bg-blue-600"></span><span class="text-blue-600">O：外心中垂線交點</span></div>
+                    <div class="flex items-center space-x-2"><span class="w-3.5 h-3.5 rounded-full bg-orange-500"></span><span class="text-orange-500">G：重心三中線交點</span></div>
+                    <div class="flex items-center space-x-2"><span class="w-3.5 h-3.5 rounded-full bg-red-500"></span><span class="text-red-500">H：垂心三高交點</span></div>
+                    <div class="flex items-center space-x-2"><span class="w-3.5 h-3.5 rounded-full bg-emerald-600"></span><span class="text-emerald-600">I：內心角平分線交點</span></div>
+                </div>
+
+                <!-- 說明文字 -->
+                <div id="euler-explanation" class="text-sm text-gray-600 border-t border-gray-200 pt-4 leading-relaxed">
+                    載入中...
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="mt-auto py-8 text-center text-gray-400 text-sm">
+        <p>© 2026 布萊克吳數學實驗室 | 用視覺學幾何</p>
+    </footer>
+
+    <script>
+        const svg = document.getElementById('svg-canvas');
+        const polygon = document.getElementById('triangle-polygon');
+        
+        const vertexA = document.getElementById('vertex-A');
+        const vertexB = document.getElementById('vertex-B');
+        const vertexC = document.getElementById('vertex-C');
+
+        const sideAB = document.getElementById('side-AB');
+        const sideBC = document.getElementById('side-BC');
+        const sideCA = document.getElementById('side-CA');
+
+        const eulerLine = document.getElementById('euler-line');
+
+        const pO = document.getElementById('point-O');
+        const pG = document.getElementById('point-G');
+        const pH = document.getElementById('point-H');
+        const pI = document.getElementById('point-I');
+
+        const lO = document.getElementById('label-O');
+        const lG = document.getElementById('label-G');
+        const lH = document.getElementById('label-H');
+        const lI = document.getElementById('label-I');
+
+        const labelA = document.getElementById('label-A');
+        const labelB = document.getElementById('label-B');
+        const labelC = document.getElementById('label-C');
+
+        const explanation = document.getElementById('euler-explanation');
+
+        let pts = {
+            A: { x: 300, y: 80 },
+            B: { x: 150, y: 300 },
+            C: { x: 450, y: 300 }
+        };
+
+        let activeVertex = null;
+
+        const presets = {
+            equilateral: {
+                A: { x: 300, y: 80 },
+                B: { x: 145, y: 348 },
+                C: { x: 455, y: 348 }
+            },
+            isosceles: {
+                A: { x: 300, y: 60 },
+                B: { x: 200, y: 300 },
+                C: { x: 400, y: 300 }
+            },
+            scalene: {
+                A: { x: 320, y: 90 },
+                B: { x: 140, y: 280 },
+                C: { x: 470, y: 310 }
+            }
+        };
+
+        function setTriangle(type) {
+            pts = JSON.parse(JSON.stringify(presets[type]));
+            drawScene();
+        }
+
+        // 計算外心
+        function getCircumcenter(A, B, C) {
+            const D = 2 * (A.x * (B.y - C.y) + B.x * (C.y - A.y) + C.x * (A.y - B.y));
+            if (Math.abs(D) < 0.001) return { x: 300, y: 200 };
+            const ux = ((A.x*A.x + A.y*A.y) * (B.y - C.y) + (B.x*B.x + B.y*B.y) * (C.y - A.y) + (C.x*C.x + C.y*C.y) * (A.y - B.y)) / D;
+            const uy = ((A.x*A.x + A.y*A.y) * (C.x - B.x) + (B.x*B.x + B.y*B.y) * (A.x - C.x) + (C.x*C.x + C.y*C.y) * (B.x - A.x)) / D;
+            return { x: ux, y: uy };
+        }
+
+        // 繪製與外推線段
+        function drawExtendedEulerLine(O, H) {
+            const dx = H.x - O.x;
+            const dy = H.y - O.y;
+            const dist = Math.hypot(dx, dy);
+            
+            if (dist < 1.0) {
+                // 如果外心與垂心非常重合，歐拉線退化為點
+                eulerLine.setAttribute('x1', O.x);
+                eulerLine.setAttribute('y1', O.y);
+                eulerLine.setAttribute('x2', O.x);
+                eulerLine.setAttribute('y2', O.y);
+                return;
+            }
+
+            // 外推 500px 畫線
+            const ux = dx / dist;
+            const uy = dy / dist;
+            const len = 600;
+
+            eulerLine.setAttribute('x1', O.x - len * ux);
+            eulerLine.setAttribute('y1', O.y - len * uy);
+            eulerLine.setAttribute('x2', H.x + len * ux);
+            eulerLine.setAttribute('y2', H.y + len * uy);
+        }
+
+        function drawScene() {
+            // 限制邊界
+            for (let k in pts) {
+                pts[k].x = Math.max(20, Math.min(580, pts[k].x));
+                pts[k].y = Math.max(20, Math.min(350, pts[k].y));
+            }
+
+            // 更新端點位置
+            vertexA.setAttribute('cx', pts.A.x); vertexA.setAttribute('cy', pts.A.y);
+            vertexB.setAttribute('cx', pts.B.x); vertexB.setAttribute('cy', pts.B.y);
+            vertexC.setAttribute('cx', pts.C.x); vertexC.setAttribute('cy', pts.C.y);
+
+            // 更新面
+            polygon.setAttribute('points', `${pts.A.x},${pts.A.y} ${pts.B.x},${pts.B.y} ${pts.C.x},${pts.C.y}`);
+
+            // 更新邊線
+            sideAB.setAttribute('x1', pts.A.x); sideAB.setAttribute('y1', pts.A.y); sideAB.setAttribute('x2', pts.B.x); sideAB.setAttribute('y2', pts.B.y);
+            sideBC.setAttribute('x1', pts.B.x); sideBC.setAttribute('y1', pts.B.y); sideBC.setAttribute('x2', pts.C.x); sideBC.setAttribute('y2', pts.C.y);
+            sideCA.setAttribute('x1', pts.C.x); sideCA.setAttribute('y1', pts.C.y); sideCA.setAttribute('x2', pts.A.x); sideCA.setAttribute('y2', pts.A.y);
+
+            // 1. 重心 G
+            const G = {
+                x: (pts.A.x + pts.B.x + pts.C.x) / 3,
+                y: (pts.A.y + pts.B.y + pts.C.y) / 3
+            };
+
+            // 2. 外心 O
+            const O = getCircumcenter(pts.A, pts.B, pts.C);
+
+            // 3. 垂心 H = 3G - 2O (Euler Line 定理)
+            const H = {
+                x: 3 * G.x - 2 * O.x,
+                y: 3 * G.y - 2 * O.y
+            };
+
+            // 4. 內心 I
+            const a = Math.hypot(pts.B.x - pts.C.x, pts.B.y - pts.C.y);
+            const b = Math.hypot(pts.A.x - pts.C.x, pts.A.y - pts.C.y);
+            const c = Math.hypot(pts.A.x - pts.B.x, pts.A.y - pts.B.y);
+            const perimeter = a + b + c;
+            const I = {
+                x: (a * pts.A.x + b * pts.B.x + c * pts.C.x) / perimeter,
+                y: (a * pts.A.y + b * pts.B.y + c * pts.C.y) / perimeter
+            };
+
+            // 繪製各點
+            pO.setAttribute('cx', O.x); pO.setAttribute('cy', O.y);
+            pG.setAttribute('cx', G.x); pG.setAttribute('cy', G.y);
+            pH.setAttribute('cx', H.x); pH.setAttribute('cy', H.y);
+            pI.setAttribute('cx', I.x); pI.setAttribute('cy', I.y);
+
+            // 點標籤 (防重合微調)
+            lO.setAttribute('x', O.x + 8); lO.setAttribute('y', O.y - 8);
+            lG.setAttribute('x', G.x + 8); lG.setAttribute('y', G.y + 12);
+            lH.setAttribute('x', H.x + 8); lH.setAttribute('y', H.y - 8);
+            lI.setAttribute('x', I.x + 8); lI.setAttribute('y', I.y + 12);
+
+            // 繪製歐拉線 (通過 O, G, H)
+            drawExtendedEulerLine(O, H);
+
+            // 頂點標籤
+            labelA.setAttribute('x', pts.A.x); labelA.setAttribute('y', pts.A.y - 15);
+            labelB.setAttribute('x', pts.B.x - 20); labelB.setAttribute('y', pts.B.y + 20);
+            labelC.setAttribute('x', pts.C.x + 10); labelC.setAttribute('y', pts.C.y + 20);
+
+            // 動態文字說明判定
+            const distOG = Math.hypot(O.x - G.x, O.y - G.y);
+            const distGI = Math.hypot(G.x - I.x, G.y - I.y);
+
+            if (distOG < 1.5 && distGI < 1.5) {
+                explanation.innerHTML = `🌟 <b>當前狀態：正三角形（正多邊形）</b><br>
+                此時外心 (O)、重心 (G)、垂心 (H) 與內心 (I) <b>完全重合在同一點</b>！此點稱為三角形的「中心」，此時歐拉線退化為一個點。`;
+            } else {
+                // 檢查是否等腰
+                // 在等腰三角形中，對稱軸是中垂線、角平分線、高與中線，因此這四個心都落在這條對稱軸上（共線）
+                // 數學上，如果內心 I 到歐拉線的垂直距離接近 0，則是等腰三角形
+                // 點 I(x0,y0) 到直線 O(x1,y1)-H(x2,y2) 的距離
+                const num = Math.abs((H.y - O.y)*I.x - (H.x - O.x)*I.y + H.x*O.y - H.y*O.x);
+                const den = Math.hypot(H.y - O.y, H.x - O.x);
+                const distToLine = den === 0 ? 0 : num / den;
+
+                if (distToLine < 1.5) {
+                    explanation.innerHTML = `🔺 <b>當前狀態：等腰三角形</b><br>
+                    在等腰三角形中，四心 (O、G、H、I) <b>全部落在同一條垂直對稱軸（歐拉線）上</b>。內心 (I) 與其他三心共線。`;
+                } else {
+                    explanation.innerHTML = `📐 <b>當前狀態：任意不等邊三角形</b><br>
+                    歐拉線貫穿<b>外心 (O)、重心 (G) 與垂心 (H)</b>，使其完美共線，且恆滿足 $OG : GH = 1 : 2$ 的黃金比例！而內心 (I) 則偏離這條歐拉線。`;
+                }
+            }
+        }
+
+        // 拖曳處理
+        function getMousePos(evt) {
+            const rect = svg.getBoundingClientRect();
+            const scaleX = 600 / rect.width;
+            const scaleY = 400 / rect.height;
+            if (evt.touches) {
+                return {
+                    x: (evt.touches[0].clientX - rect.left) * scaleX,
+                    y: (evt.touches[0].clientY - rect.top) * scaleY
+                };
+            }
+            return {
+                x: (evt.clientX - rect.left) * scaleX,
+                y: (evt.clientY - rect.top) * scaleY
+            };
+        }
+
+        function onStart(evt) {
+            const pos = getMousePos(evt);
+            const threshold = 15;
+            for (let k in pts) {
+                const dist = Math.hypot(pts[k].x - pos.x, pts[k].y - pos.y);
+                if (dist < threshold) {
+                    activeVertex = k;
+                    evt.preventDefault();
+                    break;
+                }
+            }
+        }
+
+        function onMove(evt) {
+            if (!activeVertex) return;
+            const pos = getMousePos(evt);
+            pts[activeVertex].x = pos.x;
+            pts[activeVertex].y = pos.y;
+            drawScene();
+            evt.preventDefault();
+        }
+
+        function onEnd() {
+            activeVertex = null;
+        }
+
+        svg.addEventListener('mousedown', onStart);
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onEnd);
+
+        svg.addEventListener('touchstart', onStart, { passive: false });
+        window.addEventListener('touchmove', onMove, { passive: false });
+        window.addEventListener('touchend', onEnd);
+
+        // 初始
+        drawScene();
+    </script>
+</body>
+</html>

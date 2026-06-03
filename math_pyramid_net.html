@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>四角錐展開圖 - 布萊克吳數學實驗室</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f2f5;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12 flex flex-col">
+
+    <!-- 導覽列 -->
+    <nav class="bg-white shadow-md p-4 mb-8">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="index.html" class="flex items-center space-x-2">
+                <i class="fas fa-shapes text-indigo-600 text-2xl"></i>
+                <span class="text-xl font-bold text-gray-800">布萊克吳數學實驗室</span>
+            </a>
+            <div class="text-sm text-gray-500">
+                立體幾何：四角錐展開圖
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 flex-grow max-w-4xl">
+        <!-- 返回按鈕 -->
+        <a href="index5.html" class="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-bold mb-6 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i> 返回選單
+        </a>
+
+        <!-- 標題區 -->
+        <header class="mb-8">
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-2">四角錐展開圖</h1>
+            <p class="text-gray-600">
+                調整「摺疊進度」滑桿，觀察四個側面的三角形如何以底面為軸向上合攏，並在頂點相會形成四角錐。您可以拖曳右側 3D 畫布來旋轉視角。
+            </p>
+        </header>
+
+        <!-- 主體內容 -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8 mb-8">
+            
+            <!-- 左側控制面板 (5 cols) -->
+            <div class="md:col-span-5 flex flex-col space-y-6">
+                <!-- 摺疊進度 -->
+                <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-sm font-bold text-gray-700">摺疊進度</span>
+                        <span id="valAngle-text" class="text-lg font-black text-indigo-600">0% (展開)</span>
+                    </div>
+                    <input type="range" id="sliderAngle" min="0" max="100" step="1" value="0" class="w-full h-2 bg-indigo-100 rounded-lg appearance-none cursor-pointer">
+                    <div class="flex justify-between text-xs text-gray-400 mt-1">
+                        <span>0% (平面網格)</span>
+                        <span>100% (錐體合攏)</span>
+                    </div>
+                </div>
+
+                <!-- 尺寸控制 -->
+                <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 space-y-4">
+                    <h3 class="text-sm font-bold text-gray-800 border-b pb-2 mb-2">調整尺寸</h3>
+                    <!-- 寬度 w -->
+                    <div>
+                        <div class="flex justify-between text-xs font-bold text-gray-500 mb-1">
+                            <span>底面寬度 (Width)</span>
+                            <span id="valW-text">60</span>
+                        </div>
+                        <input type="range" id="sliderW" min="30" max="80" value="60" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                    <!-- 深度 d -->
+                    <div>
+                        <div class="flex justify-between text-xs font-bold text-gray-500 mb-1">
+                            <span>底面深度 (Depth)</span>
+                            <span id="valD-text">60</span>
+                        </div>
+                        <input type="range" id="sliderD" min="30" max="80" value="60" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                    <!-- 錐高 h -->
+                    <div>
+                        <div class="flex justify-between text-xs font-bold text-gray-500 mb-1">
+                            <span>錐體高度 (Height)</span>
+                            <span id="valH-text">70</span>
+                        </div>
+                        <input type="range" id="sliderH" min="30" max="100" value="70" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右側 3D 繪圖區 (7 cols) -->
+            <div class="md:col-span-7 bg-white rounded-2xl p-6 shadow-xl border border-gray-100 flex flex-col items-center">
+                
+                <!-- 3D 畫布 -->
+                <div class="w-full bg-slate-900 rounded-xl overflow-hidden border border-gray-800 relative mb-4">
+                    <svg id="svg-canvas" class="w-full h-[350px]" viewBox="0 0 400 350" style="touch-action: none;">
+                        <g id="scene-group"></g>
+                        <text x="380" y="330" fill="white" font-size="10px" opacity="0.4" text-anchor="end">拖曳畫面可旋轉 3D 視角</text>
+                    </svg>
+                </div>
+
+                <!-- 面積計算 -->
+                <div class="w-full text-center bg-gray-50 py-3 rounded-xl border border-gray-100">
+                    <div id="surface-area-text" class="text-xl font-bold text-indigo-600">
+                        表面積 = 0 cm²
+                    </div>
+                    <div id="formula-text" class="text-xs text-gray-400 mt-1">
+                        計算公式：底面積 + 四個側三角形面積
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <footer class="mt-auto py-8 text-center text-gray-400 text-sm">
+        <p>© 2026 布萊克吳數學實驗室 | 幾何空間探索</p>
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('svg-canvas');
+        const sceneGroup = document.getElementById('scene-group');
+        
+        const sliderAngle = document.getElementById('sliderAngle');
+        const sliderW = document.getElementById('sliderW');
+        const sliderD = document.getElementById('sliderD');
+        const sliderH = document.getElementById('sliderH');
+
+        const valAngleText = document.getElementById('valAngle-text');
+        const valWText = document.getElementById('valW-text');
+        const valDText = document.getElementById('valD-text');
+        const valHText = document.getElementById('valH-text');
+
+        const surfaceAreaText = document.getElementById('surface-area-text');
+
+        let rotX = -0.5;
+        let rotY = 0.6;
+
+        let isDragging = false;
+        let lastMouseX = 0;
+        let lastMouseY = 0;
+
+        function project(x, y, z) {
+            const cosY = Math.cos(rotY);
+            const sinY = Math.sin(rotY);
+            let x1 = x * cosY - z * sinY;
+            let z1 = x * sinY + z * cosY;
+
+            const cosX = Math.cos(rotX);
+            const sinX = Math.sin(rotX);
+            let y2 = y * cosX - z1 * sinX;
+            let z2 = y * sinX + z1 * cosX;
+
+            return { x: 200 + x1, y: 165 - y2, depth: z2 };
+        }
+
+        function getFace(vertices, color, opacity) {
+            const projected = vertices.map(v => project(v.x, v.y, v.z));
+            const avgDepth = projected.reduce((sum, p) => sum + p.depth, 0) / projected.length;
+            const pointsStr = projected.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+            
+            return {
+                depth: avgDepth,
+                svgHtml: `<polygon points="${pointsStr}" fill="${color}" fill-opacity="${opacity}" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round" />`
+            };
+        }
+
+        function updateScene() {
+            const progress = parseFloat(sliderAngle.value) / 100; // 0 到 1.0
+            const w = parseFloat(sliderW.value) / 2; // 半寬
+            const d = parseFloat(sliderD.value) / 2; // 半深
+            const h = parseFloat(sliderH.value);     // 錐高
+
+            valAngleText.textContent = progress === 0 ? "0% (展開)" : (progress === 1 ? "100% (合攏)" : `${(progress*100).toFixed(0)}%`);
+            valWText.textContent = (w * 2).toFixed(0);
+            valDText.textContent = (d * 2).toFixed(0);
+            valHText.textContent = h.toFixed(0);
+
+            // 側三角形的高 (斜高)
+            const slantH_z = Math.hypot(h, d); // 繞 z 軸旋轉側面的高 (前後三角形)
+            const slantH_x = Math.hypot(h, w); // 繞 x 軸旋轉側面的高 (左右三角形)
+
+            // 計算表面積
+            const baseArea = (w * 2) * (d * 2);
+            const triZArea = 2 * ( (w * 2) * slantH_z / 2 );
+            const triXArea = 2 * ( (d * 2) * slantH_x / 2 );
+            const totalArea = baseArea + triZArea + triXArea;
+            surfaceAreaText.textContent = `表面積 = ${totalArea.toFixed(0)} cm²`;
+
+            // 閉合極限角度 (弧度)
+            const thetaZMax = Math.atan2(h, d);
+            const thetaXMax = Math.atan2(h, w);
+
+            // 當前摺疊角度
+            const thetaZ = progress * thetaZMax;
+            const thetaX = progress * thetaXMax;
+
+            const faces = [];
+
+            // 1. Bottom 面 (底面正方形 - 靜止)
+            faces.push(getFace([
+                { x: -w, y: 0, z: -d },
+                { x: w, y: 0, z: -d },
+                { x: w, y: 0, z: d },
+                { x: -w, y: 0, z: d }
+            ], '#3b82f6', 0.85)); // 藍色
+
+            // 2. Back Triangle (後側三角形 - 繞 z = -d 向上摺疊)
+            // 頂點 A 在 flat 時為 (0, 0, -d - slantH_z)
+            faces.push(getFace([
+                { x: -w, y: 0, z: -d },
+                { x: w, y: 0, z: -d },
+                { x: 0, y: slantH_z * Math.sin(thetaZ), z: -d - slantH_z * Math.cos(thetaZ) }
+            ], '#a18cd1', 0.8)); // 紫色系
+
+            // 3. Front Triangle (前側三角形 - 繞 z = d 向上摺疊)
+            faces.push(getFace([
+                { x: -w, y: 0, z: d },
+                { x: w, y: 0, z: d },
+                { x: 0, y: slantH_z * Math.sin(thetaZ), z: d + slantH_z * Math.cos(thetaZ) }
+            ], '#a18cd1', 0.8));
+
+            // 4. Left Triangle (左側三角形 - 繞 x = -w 向上摺疊)
+            faces.push(getFace([
+                { x: -w, y: 0, z: -d },
+                { x: -w, y: 0, z: d },
+                { x: -w - slantH_x * Math.cos(thetaX), y: slantH_x * Math.sin(thetaX), z: 0 }
+            ], '#fbc2eb', 0.8)); // 淺紫紅
+
+            // 5. Right Triangle (右側三角形 - 繞 x = w 向上摺疊)
+            faces.push(getFace([
+                { x: w, y: 0, z: -d },
+                { x: w, y: 0, z: d },
+                { x: w + slantH_x * Math.cos(thetaX), y: slantH_x * Math.sin(thetaX), z: 0 }
+            ], '#fbc2eb', 0.8));
+
+            // 排序深度
+            faces.sort((f1, f2) => f1.depth - f2.depth);
+
+            // 繪製
+            sceneGroup.innerHTML = faces.map(f => f.svgHtml).join('\n');
+        }
+
+        // 拖曳旋轉
+        function onMouseDown(evt) {
+            isDragging = true;
+            if (evt.touches) {
+                lastMouseX = evt.touches[0].clientX;
+                lastMouseY = evt.touches[0].clientY;
+            } else {
+                lastMouseX = evt.clientX;
+                lastMouseY = evt.clientY;
+            }
+        }
+
+        function onMouseMove(evt) {
+            if (!isDragging) return;
+            let cx, cy;
+            if (evt.touches) {
+                cx = evt.touches[0].clientX;
+                cy = evt.touches[0].clientY;
+            } else {
+                cx = evt.clientX;
+                cy = evt.clientY;
+            }
+
+            const dx = cx - lastMouseX;
+            const dy = cy - lastMouseY;
+
+            rotY += dx * 0.01;
+            rotX += dy * 0.01;
+
+            rotX = Math.max(-Math.PI/2 + 0.05, Math.min(Math.PI/2 - 0.05, rotX));
+
+            lastMouseX = cx;
+            lastMouseY = cy;
+
+            updateScene();
+        }
+
+        function onMouseUp() {
+            isDragging = false;
+        }
+
+        canvas.addEventListener('mousedown', onMouseDown);
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+
+        canvas.addEventListener('touchstart', onMouseDown, { passive: true });
+        window.addEventListener('touchmove', onMouseMove, { passive: true });
+        window.addEventListener('touchend', onMouseUp);
+
+        sliderAngle.addEventListener('input', updateScene);
+        sliderW.addEventListener('input', updateScene);
+        sliderD.addEventListener('input', updateScene);
+        sliderH.addEventListener('input', updateScene);
+
+        // 初始繪製
+        updateScene();
+    </script>
+</body>
+</html>

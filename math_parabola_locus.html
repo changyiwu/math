@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拋物線軌跡生成器 - 布萊克吳數學實驗室</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .draggable {
+            cursor: move;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12 flex flex-col">
+
+    <!-- 導覽列 -->
+    <nav class="bg-white shadow-md p-4 mb-8">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="index.html" class="flex items-center space-x-2">
+                <i class="fas fa-shapes text-indigo-600 text-2xl"></i>
+                <span class="text-xl font-bold text-gray-800">布萊克吳數學實驗室</span>
+            </a>
+            <div class="text-sm text-gray-500">
+                二次函數：拋物線軌跡生成器
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 flex-grow max-w-4xl">
+        <!-- 返回按鈕 -->
+        <a href="index3.html" class="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-bold mb-6 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i> 返回選單
+        </a>
+
+        <!-- 標題區 -->
+        <header class="mb-8">
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-2">拋物線軌跡生成器</h1>
+            <p class="text-gray-600">
+                幾何學上，拋物線是到<b>定點（焦點 $F$）</b>與<b>定直線（準線 $L$）</b>等距離的所有點的軌跡。拖曳焦點或準線，調整下方的「動點 X 坐標」滑桿，觀察動點 $P$ 兩端的距離變化。
+            </p>
+        </header>
+
+        <!-- 畫布與編輯區 -->
+        <div class="bg-white rounded-2xl p-6 shadow-xl border border-gray-100 mb-8 flex flex-col items-center">
+            
+            <!-- 滑桿控制動點 P -->
+            <div class="w-full max-w-md bg-gray-50 p-4 rounded-xl border border-gray-100 mb-6 flex flex-col space-y-2">
+                <div class="flex justify-between items-center text-sm font-bold text-gray-700">
+                    <span>動點 P 的 X 軸位置</span>
+                    <span id="px-display" class="text-indigo-600 text-base">X = 300</span>
+                </div>
+                <input type="range" id="sliderPX" min="100" max="500" value="300" class="w-full h-2 bg-indigo-100 rounded-lg appearance-none cursor-pointer">
+            </div>
+
+            <div class="w-full max-w-2xl bg-slate-900 rounded-xl overflow-hidden border border-gray-800 relative mb-6">
+                <!-- SVG 畫布 -->
+                <svg id="svg-canvas" class="w-full h-[400px]" viewBox="0 0 600 400" style="touch-action: none;">
+                    
+                    <!-- 網格背景 -->
+                    <defs>
+                        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#334155" stroke-width="0.5" />
+                        </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#grid)" />
+
+                    <!-- 準線 L (可上下拖曳的水平線) -->
+                    <g class="draggable" id="directrix-group">
+                        <line id="directrix-line" x1="0" y1="300" x2="600" y2="300" stroke="#f59e0b" stroke-width="4"></line>
+                        <!-- 準線把手 -->
+                        <rect x="520" y="285" width="60" height="30" rx="5" fill="#f59e0b" opacity="0.8"></rect>
+                        <text x="550" y="305" font-size="12px" fill="white" font-weight="bold" text-anchor="middle" pointer-events="none">準線 L</text>
+                    </g>
+
+                    <!-- 拋物線軌跡曲線 -->
+                    <path id="parabola-curve" fill="none" stroke="#6366f1" stroke-width="3" stroke-linecap="round"></path>
+
+                    <!-- 距離焦點線段 PF (藍) -->
+                    <line id="line-PF" stroke="#3b82f6" stroke-width="2" stroke-dasharray="4,4"></line>
+                    <!-- 距離準線線段 Pd (橘) -->
+                    <line id="line-PD" stroke="#f97316" stroke-width="2" stroke-dasharray="4,4"></line>
+
+                    <!-- 動點 P -->
+                    <circle id="point-P" cx="0" cy="0" r="7" fill="#8b5cf6"></circle>
+                    <text id="label-P" font-weight="bold" font-size="14px" fill="#a78bfa">P</text>
+
+                    <!-- 準線投影垂足點 d -->
+                    <circle id="point-D" cx="0" cy="0" r="4" fill="#f97316"></circle>
+
+                    <!-- 焦點 F (可任意拖曳點) -->
+                    <g class="draggable" id="focus-group">
+                        <circle id="focus-circle" cx="300" cy="150" r="8" fill="#ef4444" stroke="white" stroke-width="2"></circle>
+                        <text id="label-F" x="300" y="135" font-weight="bold" font-size="14px" fill="#ef4444" text-anchor="middle">焦點 F</text>
+                    </g>
+
+                </svg>
+            </div>
+
+            <!-- 控制列 -->
+            <div class="flex space-x-4 mb-6">
+                <button id="btn-animate" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-xl shadow-lg transition-colors flex items-center space-x-2">
+                    <i class="fas fa-play"></i>
+                    <span>軌跡動態描繪</span>
+                </button>
+                <button id="btn-reset" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold px-6 py-3 rounded-xl transition-colors">
+                    重置位置
+                </button>
+            </div>
+
+            <!-- 計算結果 -->
+            <div id="stats-panel" class="grid grid-cols-2 gap-4 bg-gray-50 p-6 rounded-xl border border-gray-100 w-full max-w-md text-center">
+                <div class="flex flex-col border-r border-gray-200 pr-4">
+                    <span class="text-xs text-gray-400">P 到焦點距離 PF</span>
+                    <span id="dist-PF-text" class="text-xl font-black text-blue-600 mt-1">0.0 px</span>
+                </div>
+                <div class="flex flex-col pl-4">
+                    <span class="text-xs text-gray-400">P 到準線距離 Pd</span>
+                    <span id="dist-PD-text" class="text-xl font-black text-orange-500 mt-1">0.0 px</span>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="mt-auto py-8 text-center text-gray-400 text-sm">
+        <p>© 2026 布萊克吳數學實驗室 | 探索二次曲線的奧秘</p>
+    </footer>
+
+    <script>
+        const svg = document.getElementById('svg-canvas');
+        const sliderPX = document.getElementById('sliderPX');
+        const pxDisplay = document.getElementById('px-display');
+        
+        const focusGroup = document.getElementById('focus-group');
+        const focusCircle = document.getElementById('focus-circle');
+        const labelF = document.getElementById('label-F');
+
+        const directrixGroup = document.getElementById('directrix-group');
+        const directrixLine = document.getElementById('directrix-line');
+
+        const parabolaCurve = document.getElementById('parabola-curve');
+        const pointP = document.getElementById('point-P');
+        const labelP = document.getElementById('label-P');
+
+        const pointD = document.getElementById('point-D');
+        const linePF = document.getElementById('line-PF');
+        const linePD = document.getElementById('line-PD');
+
+        const btnAnimate = document.getElementById('btn-animate');
+        const btnReset = document.getElementById('btn-reset');
+
+        const distPFText = document.getElementById('dist-PF-text');
+        const distPDText = document.getElementById('dist-PD-text');
+
+        // 定點焦點 F 與準線 y
+        let F = { x: 300, y: 150 };
+        let directrixY = 300;
+
+        let activeDrag = null; // 'focus' or 'directrix'
+        let dragOffset = 0;
+        let isAnimating = false;
+        let animFrameId = null;
+
+        function updateScene() {
+            // 繪製焦點
+            focusCircle.setAttribute('cx', F.x);
+            focusCircle.setAttribute('cy', F.y);
+            labelF.setAttribute('x', F.x);
+            labelF.setAttribute('y', F.y - 15);
+
+            // 限制準線在合理區間，避免與焦點太接近
+            if (directrixY < 50) directrixY = 50;
+            if (directrixY > 380) directrixY = 380;
+            if (Math.abs(directrixY - F.y) < 15) {
+                // 自動彈開
+                directrixY = F.y + (directrixY >= F.y ? 15 : -15);
+            }
+
+            // 繪製準線
+            directrixLine.setAttribute('y1', directrixY);
+            directrixLine.setAttribute('y2', directrixY);
+            
+            // 繪製準線把手
+            const handle = directrixGroup.querySelector('rect');
+            handle.setAttribute('y', directrixY - 15);
+
+            // 繪製拋物線軌跡
+            // y = ((x - F.x)^2 + F.y^2 - dY^2) / (2*(F.y - dY))
+            const pathPoints = [];
+            const step = 5;
+            for (let x = 50; x <= 550; x += step) {
+                const den = 2 * (F.y - directrixY);
+                const num = Math.pow(x - F.x, 2) + Math.pow(F.y, 2) - Math.pow(directrixY, 2);
+                const y = num / den;
+                
+                // 限制繪製高度在畫布內，避免超出太多
+                if (y >= 0 && y <= 400) {
+                    pathPoints.push(`${x},${y}`);
+                }
+            }
+            parabolaCurve.setAttribute('d', pathPoints.length > 0 ? `M ${pathPoints.join(' L ')}` : '');
+
+            // 計算當前動點 P 座標
+            const px = parseFloat(sliderPX.value);
+            pxDisplay.textContent = `X = ${px}`;
+
+            const den = 2 * (F.y - directrixY);
+            const num = Math.pow(px - F.x, 2) + Math.pow(F.y, 2) - Math.pow(directrixY, 2);
+            const py = num / den;
+
+            // 動點 P 位置
+            pointP.setAttribute('cx', px);
+            pointP.setAttribute('cy', py);
+            labelP.setAttribute('x', px + 12);
+            labelP.setAttribute('y', py - 12);
+
+            // 垂足點 d
+            pointD.setAttribute('cx', px);
+            pointD.setAttribute('cy', directrixY);
+
+            // 繪製虛線
+            linePF.setAttribute('x1', px); linePF.setAttribute('y1', py);
+            linePF.setAttribute('x2', F.x); linePF.setAttribute('y2', F.y);
+
+            linePD.setAttribute('x1', px); linePD.setAttribute('y1', py);
+            linePD.setAttribute('x2', px); linePD.setAttribute('y2', directrixY);
+
+            // 計算長度
+            const lenPF = Math.hypot(px - F.x, py - F.y);
+            const lenPD = Math.abs(py - directrixY);
+
+            distPFText.textContent = `${lenPF.toFixed(1)} px`;
+            distPDText.textContent = `${lenPD.toFixed(1)} px`;
+        }
+
+        // 動畫掃描
+        function playTraceAnimation() {
+            if (isAnimating) return;
+            isAnimating = true;
+            btnAnimate.disabled = true;
+            sliderPX.disabled = true;
+
+            let currentX = 100;
+            const targetX = 500;
+            const speed = 4; // 每幀移動 4px
+
+            function animate() {
+                if (currentX <= targetX) {
+                    sliderPX.value = currentX;
+                    updateScene();
+                    currentX += speed;
+                    animFrameId = requestAnimationFrame(animate);
+                } else {
+                    isAnimating = false;
+                    btnAnimate.disabled = false;
+                    sliderPX.disabled = false;
+                }
+            }
+            animate();
+        }
+
+        // 重置
+        function resetPositions() {
+            if (animFrameId) cancelAnimationFrame(animFrameId);
+            isAnimating = false;
+            btnAnimate.disabled = false;
+            sliderPX.disabled = false;
+
+            F = { x: 300, y: 150 };
+            directrixY = 300;
+            sliderPX.value = 300;
+            updateScene();
+        }
+
+        // 拖曳焦點與準線
+        function getMousePos(evt) {
+            const rect = svg.getBoundingClientRect();
+            const scaleX = 600 / rect.width;
+            const scaleY = 400 / rect.height;
+            if (evt.touches) {
+                return {
+                    x: (evt.touches[0].clientX - rect.left) * scaleX,
+                    y: (evt.touches[0].clientY - rect.top) * scaleY
+                };
+            }
+            return {
+                x: (evt.clientX - rect.left) * scaleX,
+                y: (evt.clientY - rect.top) * scaleY
+            };
+        }
+
+        focusGroup.addEventListener('mousedown', (evt) => {
+            if (isAnimating) return;
+            activeDrag = 'focus';
+            evt.stopPropagation();
+        });
+
+        directrixGroup.addEventListener('mousedown', (evt) => {
+            if (isAnimating) return;
+            activeDrag = 'directrix';
+            const pos = getMousePos(evt);
+            dragOffset = directrixY - pos.y;
+            evt.stopPropagation();
+        });
+
+        // 觸控支援
+        focusGroup.addEventListener('touchstart', (evt) => {
+            if (isAnimating) return;
+            activeDrag = 'focus';
+            evt.stopPropagation();
+        }, { passive: true });
+
+        directrixGroup.addEventListener('touchstart', (evt) => {
+            if (isAnimating) return;
+            activeDrag = 'directrix';
+            const pos = getMousePos(evt);
+            dragOffset = directrixY - pos.y;
+            evt.stopPropagation();
+        }, { passive: true });
+
+        window.addEventListener('mousemove', (evt) => {
+            if (!activeDrag) return;
+            const pos = getMousePos(evt);
+
+            if (activeDrag === 'focus') {
+                F.x = Math.max(100, Math.min(500, pos.x));
+                F.y = Math.max(50, Math.min(300, pos.y));
+            } else if (activeDrag === 'directrix') {
+                directrixY = pos.y + dragOffset;
+            }
+
+            updateScene();
+        });
+
+        window.addEventListener('touchmove', (evt) => {
+            if (!activeDrag) return;
+            const pos = getMousePos(evt);
+
+            if (activeDrag === 'focus') {
+                F.x = Math.max(100, Math.min(500, pos.x));
+                F.y = Math.max(50, Math.min(300, pos.y));
+            } else if (activeDrag === 'directrix') {
+                directrixY = pos.y + dragOffset;
+            }
+
+            updateScene();
+        }, { passive: true });
+
+        window.addEventListener('mouseup', () => { activeDrag = null; });
+        window.addEventListener('touchend', () => { activeDrag = null; });
+
+        sliderPX.addEventListener('input', updateScene);
+        btnAnimate.addEventListener('click', playTraceAnimation);
+        btnReset.addEventListener('click', resetPositions);
+
+        // 初始繪製
+        updateScene();
+    </script>
+</body>
+</html>

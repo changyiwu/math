@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三角形內角和為 180° - 布萊克吳數學實驗室</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .draggable {
+            cursor: move;
+            fill: #4f46e5;
+            transition: r 0.1s ease;
+        }
+        .draggable:hover {
+            r: 10;
+        }
+        .sector-animate {
+            transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12 flex flex-col">
+
+    <!-- 導覽列 -->
+    <nav class="bg-white shadow-md p-4 mb-8">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="index.html" class="flex items-center space-x-2">
+                <i class="fas fa-shapes text-indigo-600 text-2xl"></i>
+                <span class="text-xl font-bold text-gray-800">布萊克吳數學實驗室</span>
+            </a>
+            <div class="text-sm text-gray-500">
+                幾何性質探索：三角形內角和
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 flex-grow max-w-4xl">
+        <!-- 返回按鈕 -->
+        <a href="index1.html" class="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-bold mb-6 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i> 返回選單
+        </a>
+
+        <!-- 標題區 -->
+        <header class="mb-8">
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-2">三角形內角和為 180°</h1>
+            <p class="text-gray-600">
+                任意拖曳三角形的三個藍色頂點改變其形狀，觀察三個內角的角度變化。點擊下方按鈕可將三個角剪下並在一條水平線上拼合，驗證它們的加總是否恆等於 180 度。
+            </p>
+        </header>
+
+        <!-- 畫布與編輯區 -->
+        <div class="bg-white rounded-2xl p-6 shadow-xl border border-gray-100 mb-8 flex flex-col items-center">
+            
+            <div class="w-full max-w-2xl bg-slate-50 rounded-xl overflow-hidden border border-gray-200 relative mb-6">
+                <!-- SVG 畫布 -->
+                <svg id="svg-canvas" class="w-full h-[400px]" viewBox="0 0 600 400" style="touch-action: none;">
+                    <!-- 基準拼合線 (動畫時顯現) -->
+                    <line id="base-line" x1="100" y1="350" x2="500" y2="350" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4,4" opacity="0"></line>
+                    <text id="base-text" x="300" y="380" text-anchor="middle" font-size="14px" fill="#64748b" opacity="0">拼合基線 (180°)</text>
+
+                    <!-- 三角形面 -->
+                    <polygon id="triangle-polygon" points="150,300 450,300 300,100" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3"></polygon>
+                    
+                    <!-- 內角扇形 (切片) -->
+                    <!-- 這些會動態繪製，並加入個別的群組便於動畫位移與旋轉 -->
+                    <g id="group-A" class="sector-animate"><path id="sector-A" fill="#3b82f6" fill-opacity="0.8"></path></g>
+                    <g id="group-B" class="sector-animate"><path id="sector-B" fill="#ef4444" fill-opacity="0.8"></path></g>
+                    <g id="group-C" class="sector-animate"><path id="sector-C" fill="#10b981" fill-opacity="0.8"></path></g>
+
+                    <!-- 三角形邊界線 -->
+                    <line id="side-AB" stroke="#64748b" stroke-width="2"></line>
+                    <line id="side-BC" stroke="#64748b" stroke-width="2"></line>
+                    <line id="side-CA" stroke="#64748b" stroke-width="2"></line>
+
+                    <!-- 頂點名稱標籤 -->
+                    <text id="label-A" font-weight="bold" font-size="16px" fill="#1e293b"></text>
+                    <text id="label-B" font-weight="bold" font-size="16px" fill="#1e293b"></text>
+                    <text id="label-C" font-weight="bold" font-size="16px" fill="#1e293b"></text>
+
+                    <!-- 拖曳端點 -->
+                    <circle id="vertex-A" class="draggable" cx="300" cy="80" r="7"></circle>
+                    <circle id="vertex-B" class="draggable" cx="120" cy="300" r="7"></circle>
+                    <circle id="vertex-C" class="draggable" cx="480" cy="300" r="7"></circle>
+                </svg>
+            </div>
+
+            <!-- 控制列 -->
+            <div class="flex space-x-4 mb-6">
+                <button id="btn-animate" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-xl shadow-lg transition-colors flex items-center space-x-2">
+                    <i class="fas fa-scissors"></i>
+                    <span>剪角拼合動畫</span>
+                </button>
+                <button id="btn-reset" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold px-6 py-3 rounded-xl transition-colors">
+                    還原三角形
+                </button>
+            </div>
+
+            <!-- 計算結果 -->
+            <div class="text-center bg-gray-50 px-8 py-4 rounded-xl border border-gray-100 w-full max-w-md">
+                <div id="formula" class="text-2xl font-black text-slate-800">
+                    ∠A + ∠B + ∠C = 180°
+                </div>
+                <div id="formula-detail" class="text-sm text-slate-500 mt-1">
+                    0° + 0° + 0° = 180°
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="mt-auto py-8 text-center text-gray-400 text-sm">
+        <p>© 2026 布萊克吳數學實驗室 | 致力於用視覺驗證幾何</p>
+    </footer>
+
+    <script>
+        const svg = document.getElementById('svg-canvas');
+        const polygon = document.getElementById('triangle-polygon');
+        const btnAnimate = document.getElementById('btn-animate');
+        const btnReset = document.getElementById('btn-reset');
+        
+        const vertexA = document.getElementById('vertex-A');
+        const vertexB = document.getElementById('vertex-B');
+        const vertexC = document.getElementById('vertex-C');
+
+        const groupA = document.getElementById('group-A');
+        const groupB = document.getElementById('group-B');
+        const groupC = document.getElementById('group-C');
+
+        const sectorA = document.getElementById('sector-A');
+        const sectorB = document.getElementById('sector-B');
+        const sectorC = document.getElementById('sector-C');
+
+        const labelA = document.getElementById('label-A');
+        const labelB = document.getElementById('label-B');
+        const labelC = document.getElementById('label-C');
+
+        const sideAB = document.getElementById('side-AB');
+        const sideBC = document.getElementById('side-BC');
+        const sideCA = document.getElementById('side-CA');
+
+        const baseLine = document.getElementById('base-line');
+        const baseText = document.getElementById('base-text');
+
+        const formulaDetail = document.getElementById('formula-detail');
+
+        // 頂點坐標
+        let pts = {
+            A: { x: 300, y: 80 },
+            B: { x: 120, y: 300 },
+            C: { x: 480, y: 300 }
+        };
+
+        let angles = { A: 0, B: 0, C: 0 };
+        let isAnimating = false;
+
+        // 拖曳狀態
+        let activeVertex = null;
+
+        // 計算夾角
+        // 傳入三個點，計算頂點 p2 的角度 (以弧度為單位)
+        function getAngle(p1, p2, p3) {
+            const v1 = { x: p1.x - p2.x, y: p1.y - p2.y };
+            const v2 = { x: p3.x - p2.x, y: p3.y - p2.y };
+
+            const dot = v1.x * v2.x + v1.y * v2.y;
+            const det = v1.x * v2.y - v1.y * v2.x;
+            const angle = Math.atan2(det, dot);
+            return Math.abs(angle); // 回傳正角
+        }
+
+        // 計算絕對方向角（從 X 軸正向順時針旋轉）
+        function getDirectionAngle(fromPt, toPt) {
+            return Math.atan2(toPt.y - fromPt.y, toPt.x - fromPt.x);
+        }
+
+        // 繪製扇形
+        // cx, cy: 圓心, r: 半徑, startAngle: 起始角 (弧度), endAngle: 結束角 (弧度)
+        function describeSector(cx, cy, r, startAngle, endAngle) {
+            const x1 = cx + r * Math.cos(startAngle);
+            const y1 = cy + r * Math.sin(startAngle);
+            const x2 = cx + r * Math.cos(endAngle);
+            const y2 = cy + r * Math.sin(endAngle);
+
+            const diff = endAngle - startAngle;
+            // 處理跨 180 度情況
+            const largeArcFlag = Math.abs(diff) > Math.PI ? 1 : 0;
+            const sweepFlag = diff > 0 ? 1 : 0;
+
+            return `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArcFlag} ${sweepFlag} ${x2} ${y2} Z`;
+        }
+
+        function updateTriangle() {
+            if (isAnimating) return;
+
+            // 限制邊界，防止被拖曳出畫布
+            for (let k in pts) {
+                pts[k].x = Math.max(20, Math.min(580, pts[k].x));
+                pts[k].y = Math.max(20, Math.min(330, pts[k].y));
+            }
+
+            // 更新端點位置
+            vertexA.setAttribute('cx', pts.A.x);
+            vertexA.setAttribute('cy', pts.A.y);
+            vertexB.setAttribute('cx', pts.B.x);
+            vertexB.setAttribute('cy', pts.B.y);
+            vertexC.setAttribute('cx', pts.C.x);
+            vertexC.setAttribute('cy', pts.C.y);
+
+            // 更新三角形面
+            polygon.setAttribute('points', `${pts.A.x},${pts.A.y} ${pts.B.x},${pts.B.y} ${pts.C.x},${pts.C.y}`);
+
+            // 更新外框線
+            sideAB.setAttribute('x1', pts.A.x); sideAB.setAttribute('y1', pts.A.y); sideAB.setAttribute('x2', pts.B.x); sideAB.setAttribute('y2', pts.B.y);
+            sideBC.setAttribute('x1', pts.B.x); sideBC.setAttribute('y1', pts.B.y); sideBC.setAttribute('x2', pts.C.x); sideBC.setAttribute('y2', pts.C.y);
+            sideCA.setAttribute('x1', pts.C.x); sideCA.setAttribute('y1', pts.C.y); sideCA.setAttribute('x2', pts.A.x); sideCA.setAttribute('y2', pts.A.y);
+
+            // 計算內角
+            angles.A = getAngle(pts.B, pts.A, pts.C);
+            angles.B = getAngle(pts.A, pts.B, pts.C);
+            angles.C = getAngle(pts.A, pts.C, pts.B);
+
+            // 計算度數
+            const degA = Math.round(angles.A * 180 / Math.PI);
+            const degB = Math.round(angles.B * 180 / Math.PI);
+            const degC = 180 - degA - degB; // 確保加總必定剛好 180
+
+            formulaDetail.textContent = `∠A = ${degA}°，∠B = ${degB}°，∠C = ${degC}°，三個角加總 = 180°`;
+
+            // 更新頂點標籤位置
+            labelA.setAttribute('x', pts.A.x); labelA.setAttribute('y', pts.A.y - 15); labelA.textContent = `A (${degA}°)`;
+            labelB.setAttribute('x', pts.B.x - 30); labelB.setAttribute('y', pts.B.y + 20); labelB.textContent = `B (${degB}°)`;
+            labelC.setAttribute('x', pts.C.x + 10); labelC.setAttribute('y', pts.C.y + 20); labelC.textContent = `C (${degC}°)`;
+
+            // 繪製內角扇形
+            const r = 40; // 扇形半徑
+
+            // A 角扇形：從 A->B 方向到 A->C 方向
+            let dirAB = getDirectionAngle(pts.A, pts.B);
+            let dirAC = getDirectionAngle(pts.A, pts.C);
+            // 確保夾角是三角形內側 (順時針或逆時針需判定)
+            if (dirAC < dirAB) [dirAB, dirAC] = [dirAC, dirAB];
+            if (dirAC - dirAB > Math.PI) {
+                sectorA.setAttribute('d', describeSector(pts.A.x, pts.A.y, r, dirAC, dirAB + 2*Math.PI));
+            } else {
+                sectorA.setAttribute('d', describeSector(pts.A.x, pts.A.y, r, dirAB, dirAC));
+            }
+
+            // B 角扇形：從 B->C 到 B->A
+            let dirBC = getDirectionAngle(pts.B, pts.C);
+            let dirBA = getDirectionAngle(pts.B, pts.A);
+            if (dirBA < dirBC) [dirBC, dirBA] = [dirBA, dirBC];
+            if (dirBA - dirBC > Math.PI) {
+                sectorB.setAttribute('d', describeSector(pts.B.x, pts.B.y, r, dirBA, dirBC + 2*Math.PI));
+            } else {
+                sectorB.setAttribute('d', describeSector(pts.B.x, pts.B.y, r, dirBC, dirBA));
+            }
+
+            // C 角扇形：從 C->A 到 C->B
+            let dirCA = getDirectionAngle(pts.C, pts.A);
+            let dirCB = getDirectionAngle(pts.C, pts.B);
+            if (dirCB < dirCA) [dirCA, dirCB] = [dirCB, dirCA];
+            if (dirCB - dirCA > Math.PI) {
+                sectorC.setAttribute('d', describeSector(pts.C.x, pts.C.y, r, dirCB, dirCA + 2*Math.PI));
+            } else {
+                sectorC.setAttribute('d', describeSector(pts.C.x, pts.C.y, r, dirCA, dirCB));
+            }
+        }
+
+        // 播放剪角拼合動畫
+        async function playAlignment() {
+            if (isAnimating) return;
+            isAnimating = true;
+
+            // 禁用頂點拖曳與按鈕
+            btnAnimate.disabled = true;
+
+            // 顯示基線
+            baseLine.setAttribute('opacity', '1');
+            baseText.setAttribute('opacity', '1');
+
+            // 隱藏三角形線條與頂點標籤以突顯角度
+            polygon.setAttribute('opacity', '0.15');
+            sideAB.setAttribute('opacity', '0.15');
+            sideBC.setAttribute('opacity', '0.15');
+            sideCA.setAttribute('opacity', '0.15');
+            labelA.setAttribute('opacity', '0.15');
+            labelB.setAttribute('opacity', '0.15');
+            labelC.setAttribute('opacity', '0.15');
+            vertexA.setAttribute('opacity', '0');
+            vertexB.setAttribute('opacity', '0');
+            vertexC.setAttribute('opacity', '0');
+
+            // 拼合的中心點 (基準點為 (300, 350))
+            const targetX = 300;
+            const targetY = 350;
+
+            // 我們需要將扇形移動到 targetX, targetY 並進行旋轉
+            // 扇形原本在各自的 A, B, C 點
+            // 移動： translate(targetX - origin.x, targetY - origin.y)
+            // 旋轉：旋轉使三個扇形拼合在水平線 (180度角) 上
+            // 藍色角 A 放最左邊 (從 180° 到 180°-A) -> 絕對起始方向為 Math.PI (指向左)，順時針旋轉
+            // 紅色角 B 放中間
+            // 綠色角 C 放最右邊
+
+            // 計算動畫中需要旋轉的角度 (相對於原本的扇形中線或起點)
+            // 為了簡化，直接將整個 g 群組 translate 到 target，並應用 rotate。
+            // g 的 transform 屬性為: translate(dx, dy) rotate(deg, cx, cy)
+            
+            // 1. 角 A 的旋轉定位：
+            // 我們希望角 A 的平分線指向 180° - A/2，或者是說，A 的一邊貼在左側基線(180°)上。
+            // 我們知道 A 的邊在 dirAB 與 dirAC 之間，假設我們旋轉整個群組，使角 A 的中心線指向對準基線。
+            // 一個更簡單直接的方式：
+            // 原扇形是以頂點為中心畫的。如果我們把群組移到目標點，然後用 CSS 或 SVG rotate。
+            // 我們可以直接讓 JS 計算目標偏置，把角 B 的起點貼在角 A 的終點上，角 C 的起點貼在角 B 的終點上。
+            
+            // 我們可以計算每個角的「內部平分角」方向
+            const getMidAngle = (v, p1, p2, p3) => {
+                let d1 = getDirectionAngle(p2, p1);
+                let d2 = getDirectionAngle(p2, p3);
+                if (d2 < d1) [d1, d2] = [d2, d1];
+                if (d2 - d1 > Math.PI) d1 += 2*Math.PI;
+                return (d1 + d2) / 2;
+            };
+
+            const midA = getMidAngle('A', pts.B, pts.A, pts.C);
+            const midB = getMidAngle('B', pts.A, pts.B, pts.C);
+            const midC = getMidAngle('C', pts.A, pts.C, pts.B);
+
+            // A 角中線要旋轉到： 180° - A/2  (弧度為 PI - A/2)
+            const targetMidA = Math.PI - angles.A / 2;
+            const rotA = (targetMidA - midA) * 180 / Math.PI;
+
+            // B 角中線要旋轉到： 180° - A - B/2 (即 PI - A - B/2)
+            const targetMidB = Math.PI - angles.A - angles.B / 2;
+            const rotB = (targetMidB - midB) * 180 / Math.PI;
+
+            // C 角中線要旋轉到： 180° - A - B - C/2 (即 C/2)
+            const targetMidC = angles.C / 2;
+            const rotC = (targetMidC - midC) * 180 / Math.PI;
+
+            // 執行平移與旋轉動畫
+            groupA.style.transform = `translate(${targetX - pts.A.x}px, ${targetY - pts.A.y}px) rotate(${rotA}deg)`;
+            groupA.style.transformOrigin = `${pts.A.x}px ${pts.A.y}px`;
+
+            groupB.style.transform = `translate(${targetX - pts.B.x}px, ${targetY - pts.B.y}px) rotate(${rotB}deg)`;
+            groupB.style.transformOrigin = `${pts.B.x}px ${pts.B.y}px`;
+
+            groupC.style.transform = `translate(${targetX - pts.C.x}px, ${targetY - pts.C.y}px) rotate(${rotC}deg)`;
+            groupC.style.transformOrigin = `${pts.C.x}px ${pts.C.y}px`;
+
+            formulaDetail.innerHTML = `動畫拼合中... 觀察三個角組成完美的平角 <span class="font-extrabold text-indigo-600">180°</span>！`;
+        }
+
+        // 還原三角形
+        function resetTriangle() {
+            // 清除 Transform 樣式
+            groupA.style.transform = '';
+            groupB.style.transform = '';
+            groupC.style.transform = '';
+
+            // 顯示元素
+            baseLine.setAttribute('opacity', '0');
+            baseText.setAttribute('opacity', '0');
+            polygon.setAttribute('opacity', '1');
+            sideAB.setAttribute('opacity', '1');
+            sideBC.setAttribute('opacity', '1');
+            sideCA.setAttribute('opacity', '1');
+            labelA.setAttribute('opacity', '1');
+            labelB.setAttribute('opacity', '1');
+            labelC.setAttribute('opacity', '1');
+            vertexA.setAttribute('opacity', '1');
+            vertexB.setAttribute('opacity', '1');
+            vertexC.setAttribute('opacity', '1');
+
+            btnAnimate.disabled = false;
+            isAnimating = false;
+            
+            updateTriangle();
+        }
+
+        // 滑鼠與觸控拖曳事件處理
+        function getMousePos(evt) {
+            const rect = svg.getBoundingClientRect();
+            // 考慮 SVG 的 viewBox 座標比例
+            const scaleX = 600 / rect.width;
+            const scaleY = 400 / rect.height;
+            
+            if (evt.touches) {
+                return {
+                    x: (evt.touches[0].clientX - rect.left) * scaleX,
+                    y: (evt.touches[0].clientY - rect.top) * scaleY
+                };
+            }
+            return {
+                x: (evt.clientX - rect.left) * scaleX,
+                y: (evt.clientY - rect.top) * scaleY
+            };
+        }
+
+        function onStart(evt) {
+            if (isAnimating) return;
+            const pos = getMousePos(evt);
+            
+            // 檢查是否點擊在頂點附近
+            const threshold = 15;
+            for (let k in pts) {
+                const dist = Math.hypot(pts[k].x - pos.x, pts[k].y - pos.y);
+                if (dist < threshold) {
+                    activeVertex = k;
+                    evt.preventDefault();
+                    break;
+                }
+            }
+        }
+
+        function onMove(evt) {
+            if (!activeVertex || isAnimating) return;
+            const pos = getMousePos(evt);
+            pts[activeVertex].x = pos.x;
+            pts[activeVertex].y = pos.y;
+            updateTriangle();
+            evt.preventDefault();
+        }
+
+        function onEnd() {
+            activeVertex = null;
+        }
+
+        // 綁定事件
+        svg.addEventListener('mousedown', onStart);
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onEnd);
+
+        svg.addEventListener('touchstart', onStart, { passive: false });
+        window.addEventListener('touchmove', onMove, { passive: false });
+        window.addEventListener('touchend', onEnd);
+
+        btnAnimate.addEventListener('click', playAlignment);
+        btnReset.addEventListener('click', resetTriangle);
+
+        // 初始化繪製
+        updateTriangle();
+    </script>
+</body>
+</html>
